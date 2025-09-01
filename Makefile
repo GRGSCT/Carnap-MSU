@@ -2,7 +2,7 @@
 TARGET := all
 
 CABALFLAGS := -f dev
-APPROOT := "http://localhost:3000"
+APPROOT := "http://34.61.254.65:3000"
 DATAROOT := "../dataroot"
 BOOKROOT := "../books/Carnap-Book/"
 
@@ -45,7 +45,7 @@ build-docker:
 
 devel: build-ghcjs run
 
-APPROOT := "http://localhost:3000"
+APPROOT := "http://34.61.254.65:3000"
 DATAROOT := "../dataroot"
 BOOKROOT := "../Carnap-Book/"
 
