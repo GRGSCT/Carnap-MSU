@@ -28,7 +28,6 @@
                 <col style="width:100px">
                 <col style="width:50px">
                 <col style="width:100px">
-                <col style="width:100px">
                 <col style="width:50px">
                 <col style="width:50px">
                 <thead#problem-table-head>
@@ -38,12 +37,11 @@
                     <th style="cursor:pointer" onclick="sortUsersByCol(1)">
                         _{MsgUserPageTable3Exercise}
                         <i class="fa fa-sort" aria-hidden="true"></i>
-                    <th>_{MsgUserPageTable3Content}
-                    <th style="cursor:pointer" onclick="sortUsersByCol(3)">
+                    <th style="cursor:pointer" onclick="sortUsersByCol(2)">
                         _{MsgUserPageTable3Submitted}
                         <i class="fa fa-sort" aria-hidden="true"></i>
                     <th>_{MsgUserPageTable3Points}
-                    <th style="cursor:pointer" onclick="sortUsersByCol(5)">
+                    <th style="cursor:pointer" onclick="sortUsersByCol(4)">
                         _{MsgUserPageTable3Type}
                         <i class="fa fa-sort" aria-hidden="true"></i>
                 <tbody#problem-table-body>
