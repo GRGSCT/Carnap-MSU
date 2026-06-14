@@ -238,7 +238,7 @@ finishedTableOf course accommodation textbookproblems asmdex subs = do
 
               subData = [ (getGroupKey p, (getExerciseIdent p, getScore p)) | p <- subs ]
 
-              groupedMap = foldr' insertSub Map.empty subData
+              groupedMap = foldr insertSub Map.empty subData
                 where
                   insertSub (gKey, (exIdent, score)) m =
                       Map.insertWith (\(exsNew, scNew) (exsOld, scOld) -> (exsNew ++ exsOld, scNew + scOld)) gKey ([exIdent], score) m
