@@ -219,3 +219,8 @@ Unenroll: Unenroll
 Edit: Edit
 
 NoUserPage: This user does not exist
+
+FinishedTitle: Finished
+FinishedAssignment: Assignment
+FinishedExercises: Exercises
+FinishedPoints: Points

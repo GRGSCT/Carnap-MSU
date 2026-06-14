@@ -16,6 +16,8 @@ import Util.Sql
 import Util.Grades
 import qualified Data.IntMap as IM
 import Data.IntMap ((!))
+import qualified Data.Map as Map
+import Data.List (nub, sortOn)
 
 postUserR :: Text -> Handler Html
 postUserR ident = do
@@ -109,6 +111,7 @@ getUserR ident = do
                                return (asmd, extensions, accommodation, subs)
                     assignments <- assignmentsOf accommodation course textbookproblems (zip asmd extensions)
                     subtable <- problemsToTable course accommodation textbookproblems (zip asmd extensions) subs
+                    finishedTable <- finishedTableOf course accommodation textbookproblems (zip asmd extensions) subs
                     defaultLayout $ do
                         addScript $ StaticR js_columnSort_js
                         addScript $ StaticR js_bootstrap_bundle_min_js
@@ -197,6 +200,68 @@ problemsToTable course accommodation textbookproblems asmdex submissions = do
                             Nothing -> [hamlet|No existing assignment|]
                             Just n -> let Entity _ a = asmd !! n in
                                 [hamlet| <a href=@{CourseAssignmentR (courseTitle course) (assignmentMetadataTitle a)}>#{assignmentMetadataTitle a}|]
+
+finishedTableOf :: Course -> Int -> Maybe BookAssignmentTable
+    -> [(Entity AssignmentMetadata, Maybe (Entity Extension))] -> [ProblemSubmission]
+    -> HandlerFor App Html
+finishedTableOf course accommodation textbookproblems asmdex subs = do
+            rows <- mapM renderRow sortedGroups
+            withUrlRenderer [hamlet|
+                                    $forall row <- rows
+                                        ^{row}|]
+        where
+              getGroupKey p = case problemSubmissionAssignmentId p of
+                  Just aId -> Left aId
+                  Nothing ->
+                      let identStr = unpack (problemSubmissionIdent p)
+                          numStr = takeWhile (/= '.') identStr
+                      in case readMaybe numStr of
+                          Just n -> Right n
+                          Nothing -> Right 0
+
+              getGroupTitle (Left aId) =
+                  case filter (\(Entity k _, _) -> k == aId) asmdex of
+                      ((Entity _ a, _):_) -> assignmentMetadataTitle a
+                      _ -> "Unknown Assignment"
+              getGroupTitle (Right num) = "Problem Set " ++ pack (show num)
+
+              getExerciseIdent p =
+                  let ident = problemSubmissionIdent p
+                  in case problemSubmissionAssignmentId p of
+                      Just _ -> ident
+                      Nothing ->
+                          case break (== '.') (unpack ident) of
+                              (_, "") -> ident
+                              (_, '.':rest) -> pack rest
+
+              getScore p = toScoreAny textbookproblems asmdex accommodation p
+
+              subData = [ (getGroupKey p, (getExerciseIdent p, getScore p)) | p <- subs ]
+
+              groupedMap = foldr' insertSub Map.empty subData
+                where
+                  insertSub (gKey, (exIdent, score)) m =
+                      Map.insertWith (\(exsNew, scNew) (exsOld, scOld) -> (exsNew ++ exsOld, scNew + scOld)) gKey ([exIdent], score) m
+
+              sortKey (Right num) = (0, num)
+              sortKey (Left aId) =
+                  case elemIndex aId (map (entityKey . fst) asmdex) of
+                      Just idx -> (1, idx)
+                      Nothing -> (2, 0)
+
+              sortedGroups = sortOn (sortKey . fst) (Map.toList groupedMap)
+
+              sortExercises :: [Text] -> [Text]
+              sortExercises exs = sortOn (\t -> (readMaybe (unpack t) :: Maybe Int, t)) (nub exs)
+
+              renderRow (gKey, (exs, score)) = do
+                  let title = getGroupTitle gKey
+                      exsStr = intercalate ", " (sortExercises exs)
+                  return [hamlet|
+                      <tr>
+                          <td>#{title}
+                          <td>#{exsStr}
+                          <td>#{score}|]
 
 tryDelete :: (Semigroup a, IsString a) => a -> a
 tryDelete name = "tryDeleteRule(\"" <> name <> "\")"

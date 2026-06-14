@@ -217,3 +217,8 @@ Unenroll: Desinscrever-se
 Edit: Editar
 
 NoUserPage: Este usuário não existe
+
+FinishedTitle: Concluídos
+FinishedAssignment: Tarefa
+FinishedExercises: Exercícios
+FinishedPoints: Pontos

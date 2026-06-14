@@ -176,3 +176,8 @@ CarnapBookAppendix: Ek
 CarnapBookSpecialSections: Özel Kesimler:
 CarnapBookIndexOfRules: Kurallar Dizini
 CarnapBookLicense: altında lisanslıdır.
+
+FinishedTitle: Tamamlananlar
+FinishedAssignment: Ödev
+FinishedExercises: Egzersizler
+FinishedPoints: Puanlar
