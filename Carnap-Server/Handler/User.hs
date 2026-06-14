@@ -177,8 +177,6 @@ problemsToTable course accommodation textbookproblems asmdex submissions = do
                                   <tr>
                                     <td>^{printSource (problemSubmissionSource p)}
                                     <td>#{problemSubmissionIdent p}
-                                    <td title="#{displayProblemData $ problemSubmissionData p}">
-                                        <div.problem-display> #{displayProblemData $ problemSubmissionData p}
                                     <td>#{dateDisplay (problemSubmissionTime p) course}
                                     <td.score-column>#{score}
                                     <td>#{show $ problemSubmissionType p}|]
