@@ -17,7 +17,7 @@ import Util.Grades
 import qualified Data.IntMap as IM
 import Data.IntMap ((!))
 import qualified Data.Map as Map
-import Data.List (nub, sortOn)
+import Data.List (nub)
 
 postUserR :: Text -> Handler Html
 postUserR ident = do
