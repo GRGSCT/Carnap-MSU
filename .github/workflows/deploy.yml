@@ -1,0 +1,74 @@
+name: Build and Deploy Carnap Server
+
+on:
+  push:
+    branches:
+      - master # Triggers when you push to your master/main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest # This gets you the free 4-core, 16GB RAM machine
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Crucial step to clear out ~30GB of Microsoft bloatware
+      # so Nix has enough room to build the client and server.
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
+
+      # Installs Nix using the exact setup your project expects
+      - name: Install Nix
+        uses: cachix/install-nix-action@v30
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      # Pulls pre-compiled parts from the project's cache so you don't rebuild the universe
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v15
+        with:
+          name: carnap
+          skipPush: true
+
+      # The exact build commands from your ci.yaml
+      - name: Build Client (GHCJS)
+        run: nix-build -A client
+
+      # Note: If your $5 server is only hosting the frontend, you don't need this step.
+      # If your server runs the backend logic engine too, keep it.
+      - name: Build Server (Backend)
+        run: nix-build -A server
+
+      # Securely pushes the compiled artifacts to your live $5 DigitalOcean droplet
+      - name: Deploy to Live Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          # Nix builds output to a symlink called 'result'. 
+          # We transfer the compiled result folder to your server.
+          source: "result/*"
+          target: "/var/www/carnap"
+          tar_dereference: true
+          
+          
+      - name: Restart Server Service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Example restart command for a systemd service:
+            systemctl restart carnap.service
+            
