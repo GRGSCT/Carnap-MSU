@@ -1,5 +1,7 @@
 name: Automatically build Carnap and Carnap-GHCJS
 on: [push, pull_request]
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 jobs:
   # conditionally sets the matrix based on which repo this is, avoiding needing
   # the self hosted runner on forks
