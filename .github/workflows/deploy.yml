@@ -45,6 +45,8 @@ jobs:
           nix-build -A client
           mkdir -p deploy_bundle
           cp -rL result/* deploy_bundle/
+          # Nix store files are read-only; make writable so server output can merge in
+          chmod -R u+w deploy_bundle/
 
       # 2. Build the Backend and add it to the bundle
       - name: Build Server (Backend)
@@ -52,9 +54,9 @@ jobs:
           nix-build -A server
           cp -rL result/* deploy_bundle/
 
-      # 3. Force permissions open using sudo to prevent any locked file errors
+      # 3. Ensure deploy bundle is readable and traversable for SCP
       - name: Unlock File Permissions
-        run: sudo chmod -R 777 deploy_bundle/
+        run: chmod -R u+rwX,go+rX deploy_bundle/
 
       # 4. Use native Linux SCP (bypasses Docker entirely)
       - name: Deploy to Live Server
