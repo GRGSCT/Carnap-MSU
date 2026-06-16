@@ -23,7 +23,7 @@ jobs:
           dotnet: true
           haskell: true
           large-packages: true
-          docker-images: true
+          docker-images: false
           swap-storage: false
 
       # Installs Nix using the exact setup your project expects
