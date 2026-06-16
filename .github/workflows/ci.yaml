@@ -14,13 +14,13 @@ jobs:
       - id: set-matrix
         run: |
           if [[ $GITHUB_REPOSITORY = 'Carnap/Carnap' ]]; then
-            echo '::set-output name=matrix::["macos-10.15"]'
-            echo '::set-output name=docker_matrix::[]'
-            # echo '::set-output name=matrix::["self-hosted", "macos-10.15"]'
-            # echo '::set-output name=docker_matrix::["self-hosted"]'
+            echo 'matrix=["ubuntu-latest"]' >> "$GITHUB_OUTPUT"
+            echo 'docker_matrix=[]' >> "$GITHUB_OUTPUT"
+            # echo 'matrix=["self-hosted", "ubuntu-latest"]' >> "$GITHUB_OUTPUT"
+            # echo 'docker_matrix=["self-hosted"]' >> "$GITHUB_OUTPUT"
           else
-            echo '::set-output name=matrix::["macos-10.15"]'
-            echo '::set-output name=docker_matrix::[]'
+            echo 'matrix=["ubuntu-latest"]' >> "$GITHUB_OUTPUT"
+            echo 'docker_matrix=[]' >> "$GITHUB_OUTPUT"
           fi
 
   build:
@@ -30,16 +30,30 @@ jobs:
       matrix:
         os: ${{ fromJSON(needs.matrix-prep.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: cachix/install-nix-action@v15
+      - uses: actions/checkout@v4
+
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: false
+
+      - uses: cachix/install-nix-action@v30
         with:
           nix_path: nixpkgs=channel:nixos-unstable
-      - uses: cachix/cachix-action@v10
+
+      - uses: cachix/cachix-action@v15
         with:
           name: carnap
           # skip pushing to cachix if this is NOT a push to a branch (i.e. it is a PR)
           skipPush: ${{ github.event_name != 'push' }}
           signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+
       # run it in serial because we are getting attacked by the OOM killer lol
       - run: nix-build -A client
       - run: nix-build -A server
@@ -59,12 +73,12 @@ jobs:
     steps:
       - run: 'mkdir -p "${XDG_RUNTIME_DIR}"'
       - run: "echo url: docker://$(echo ${IMG_REF} | envsubst | tr 'A-Z' 'a-z')"
-      - uses: actions/checkout@v2
-      - uses: cachix/install-nix-action@v15
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v30
         with:
           nix_path: nixpkgs=channel:nixos-unstable
       - run: nix-shell -p skopeo --run "skopeo --insecure-policy login docker.pkg.github.com -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}"
-      - uses: cachix/cachix-action@v10
+      - uses: cachix/cachix-action@v15
         with:
           name: carnap
           # the docker image artifacts are really big and not terribly useful for deployment
