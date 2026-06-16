@@ -58,23 +58,26 @@ jobs:
       - name: Unlock File Permissions
         run: chmod -R u+rwX,go+rX deploy_bundle/
 
-      # 4. Use native Linux SCP (bypasses Docker entirely)
+
+    # 4. Use native Linux SCP (bypasses Docker entirely)
       - name: Deploy to Live Server
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
         run: |
-          # Create the SSH directory and save your private key
+          # Create the SSH directory
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           
           # Automatically trust your droplet's IP address
           ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts
           
           # Securely copy the unzipped files directly to your server
-          scp -r deploy_bundle/* root@$SERVER_IP:/var/www/carnap/          
+          scp -r deploy_bundle/* root@$SERVER_IP:/var/www/carnap/
     
+
     
       - name: Restart Server Service
         uses: appleboy/ssh-action@v1.0.3
