@@ -52,6 +52,7 @@ jobs:
         run: |
           mkdir -p deploy_bundle
           cp -rL result/* deploy_bundle/
+          chmod -R 777 deploy_bundle/
 
 
       # Securely pushes the compiled artifacts to your live $5 DigitalOcean droplet
