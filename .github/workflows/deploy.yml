@@ -14,7 +14,6 @@ jobs:
         uses: actions/checkout@v4
 
       # Crucial step to clear out ~30GB of Microsoft bloatware
-      # so Nix has enough room to build the client and server.
       - name: Free Disk Space
         uses: jlumbroso/free-disk-space@main
         with:
@@ -32,53 +31,44 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      # Pulls pre-compiled parts from the project's cache so you don't rebuild the universe
+      # Pulls pre-compiled parts from the project's cache
       - name: Setup Cachix
         uses: cachix/cachix-action@v15
         with:
           name: carnap
           skipPush: true
 
-        # 1. Build the Frontend and save it immediately
+      # 1. Build the Frontend into a specific output link
       - name: Build Client (GHCJS)
-        run: |
-          nix-build -A client
-          mkdir -p deploy_bundle
-          cp -rL result/* deploy_bundle/
-          # Nix store files are read-only; make writable so server output can merge in
-          chmod -R u+w deploy_bundle/
+        run: nix-build -A client -o result-client
 
-      # 2. Build the Backend and add it to the bundle
+      # 2. Build the Backend into a specific output link
       - name: Build Server (Backend)
-        run: |
-          nix-build -A server
-          cp -rL result/* deploy_bundle/
+        run: nix-build -A server -o result-server
 
-      # 3. Ensure deploy bundle is readable and traversable for SCP
-      - name: Unlock File Permissions
-        run: chmod -R u+rwX,go+rX deploy_bundle/
-
-
-    # 4. Use native Linux SCP (bypasses Docker entirely)
+      # 3. Use the native Nix teleporter (Replaces SCP entirely)
       - name: Deploy to Live Server
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
+          NIX_SSHOPTS: "-o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519"
         run: |
-          # Create the SSH directory
           mkdir -p ~/.ssh
           
-          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+          # Write the key, strip out hidden Windows carriage returns, and force a final newline
+          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+          echo "" >> ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          
-          # Automatically trust your droplet's IP address
-          ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts
-          
-          # Securely copy the unzipped files directly to your server
-          scp -r deploy_bundle/* root@$SERVER_IP:/var/www/carnap/
-    
 
-    
+          # Beam the exact web of dependencies directly to your server
+          nix-copy-closure --to root@$SERVER_IP ./result-client
+          nix-copy-closure --to root@$SERVER_IP ./result-server
+
+          # Create live symlinks so your systemd service always finds the newest push
+          ssh $NIX_SSHOPTS root@$SERVER_IP "ln -sfn $(readlink -f result-client) /var/www/carnap/client"
+          ssh $NIX_SSHOPTS root@$SERVER_IP "ln -sfn $(readlink -f result-server) /var/www/carnap/server"
+
+      # 4. Restart the background service
       - name: Restart Server Service
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -86,6 +76,4 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Example restart command for a systemd service:
             systemctl restart carnap.service
-            
