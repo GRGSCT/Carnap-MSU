@@ -478,11 +478,17 @@ instance YesodAuth App where
     -- appDevel is a custom method added to the settings, which is true
     -- when yesod is running in the development environment and false
     -- otherwise
+    -- NOTE: authDummy is temporarily always enabled for development/testing.
+    -- When ready for production auth (Google OAuth or Canvas LTI), restore
+    -- the original conditional:
+    --   if appDevel settings
+    --       then [ authDummy, lti13 ]
+    --       else [ oauth2GoogleScoped ["email","profile"] (appKey settings) (appSecret settings),
+    --              lti13 ]
     authPlugins app = let settings = appSettings app in
                           if appDevel settings
                               then [ authDummy, lti13 ]
-                              else [ oauth2GoogleScoped ["email","profile"] (appKey settings) (appSecret settings),
-                                     lti13 ]
+                              else [ authDummy, lti13 ]
         where
             lti13 = authLTI13WithWidget (\_ -> fromString "")
 
