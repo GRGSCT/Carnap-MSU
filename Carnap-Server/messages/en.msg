@@ -1,5 +1,5 @@
 # templates/homepage.hamlet
-HomepageWelcome: Welcome to Carnap.io
+HomepageWelcome: Carnap: Mississippi State
 HomepageSubtitle: A formal logic framework for Haskell
 HomepageHeader: Background
 HomepageTextPrefix1: Carnap is a free and open software framework written in
@@ -8,12 +8,12 @@ HomepageTextSuffix1: for teaching and studying formal logic.
 HomepageTextPrefix2: Carnap powers logic courses at
 HomepageTextLink2: dozens of colleges and universities
 HomepageTextSuffix2: around the world.
-HomepageText3: If you're a student in a course that uses Carnap, please follow the links at the top of the page to log in and to access course materials.
-HomepageTextPrefix4: If you're just curious about Carnap, you can find some general information on our
-HomepageTextLink4: about
-HomepageTextSuffix4: page. 
-HomepageTextPrefix5: If you're interested in the project, and would like to use Carnap in a class you're teaching, or get involved in some other way, please feel free to 
-HomepageTextLink5: get in touch!
+# HomepageText3: If you're a student in a course that uses Carnap, please follow the links at the top of the page to log in and to access course materials.
+# HomepageTextPrefix4: If you're just curious about Carnap, you can find some general information on our
+# HomepageTextLink4: about
+# HomepageTextSuffix4: page. 
+# HomepageTextPrefix5: If you're interested in the project, and would like to use Carnap in a class you're teaching, or get involved in some other way, please feel free to 
+# HomepageTextLink5: get in touch!
 
 # templates/infopage.hamlet
 InfopageAboutCarnap: About Carnap
@@ -188,7 +188,7 @@ UserPageTextInstructorLink: here
 UserPageTable1Title: Upcoming Problems
 UserPageTable1DueDates: Due Dates
 UserPageTable2Title: Total Points Earned
-UserPageTable3Title: Completed Problems
+UserPageTable3Title: Record
 UserPageTable3Source: Source
 UserPageTable3Exercise: Exercise
 UserPageTable3Content: Content
@@ -220,7 +220,7 @@ Edit: Edit
 
 NoUserPage: This user does not exist
 
-FinishedTitle: Finished
+FinishedTitle: Completed Problems
 FinishedAssignment: Assignment
 FinishedExercises: Exercises
 FinishedPoints: Points

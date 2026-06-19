@@ -8,12 +8,12 @@ HomepageTextSuffix1: para ensinar e estudar lógica formal.
 HomepageTextPrefix2: Carnap sustenta e enriquece cursos de lógica
 HomepageTextLink2: em dezenas de faculdades e universidades
 HomepageTextSuffix2: ao redor do mundo.
-HomepageText3: Se você é estudante em um curso que usa Carnap, por favor siga os links no topo da página para entrar na plataforma e acessar os materiais de curso.
-HomepageTextPrefix4: Se está apenas curioso sobre o Carnap, você pode encontrar informações gerais em nossa
-HomepageTextLink4: página
-HomepageTextSuffix4: de informações.
-HomepageTextPrefix5: Se você está interessado no projeto e gostaria de usar Carnap nos cursos que ministra, ou gostaria de se envolver de alguma outra maneira, por favor sinta-se livre para
-HomepageTextLink5: entrar em contato!
+# HomepageText3: Se você é estudante em um curso que usa Carnap, por favor siga os links no topo da página para entrar na plataforma e acessar os materiais de curso.
+# HomepageTextPrefix4: Se está apenas curioso sobre o Carnap, você pode encontrar informações gerais em nossa
+# HomepageTextLink4: página
+# HomepageTextSuffix4: de informações.
+# HomepageTextPrefix5: Se você está interessado no projeto e gostaria de usar Carnap nos cursos que ministra, ou gostaria de se envolver de alguma outra maneira, por favor sinta-se livre para
+# HomepageTextLink5: entrar em contato!
 
 
 # templates/infopage.hamlet
@@ -187,7 +187,7 @@ UserPageTextInstructorLink: aqui
 UserPageTable1Title: Exercícios a entregar
 UserPageTable1DueDates: Datas de entrega
 UserPageTable2Title: Total de pontos obtidos
-UserPageTable3Title: Exercícios entregues
+UserPageTable3Title: Registro
 UserPageTable3Source: Exercício
 UserPageTable3Exercise: Item
 UserPageTable3Content: Conteúdo
@@ -218,7 +218,7 @@ Edit: Editar
 
 NoUserPage: Este usuário não existe
 
-FinishedTitle: Concluídos
+FinishedTitle: Exercícios Concluídos
 FinishedAssignment: Tarefa
 FinishedExercises: Exercícios
 FinishedPoints: Pontos

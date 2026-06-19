@@ -8,12 +8,12 @@ HomepageTextSuffix1: dilinde yazılmış ücretsiz ve açık yazılım çerçeve
 HomepageTextPrefix2: Carnap, dünya çapında
 HomepageTextLink2: düzinelerce kolej ve üniversitede
 HomepageTextSuffix2: okutulan mantık derslerine güç katar.
-HomepageText3: Carnap kullanan bir derse kayıtlı öğrenciyseniz, oturum açmak ve ders içeriğine erişmek için lütfen sayfanın üst kısmındaki bağlantıları izleyin.
-HomepageTextPrefix4: Carnap'ı sadece merak ediyorsanız, bazı genel bilgileri sitemizin
-HomepageTextLink4: hakkında
-HomepageTextSuffix4: sayfasında bulabilirsiniz..
-HomepageTextPrefix5: Projeyle ilgileniyorsanız ve Carnap'ı mantık öğrettiğiniz bir sınıfta kullanmak veya projeye başka bir şekilde dahil olmak istiyorsanız lütfen
-HomepageTextLink5: irtibata geçmekten çekinmeyiniz!
+# HomepageText3: Carnap kullanan bir derse kayıtlı öğrenciyseniz, oturum açmak ve ders içeriğine erişmek için lütfen sayfanın üst kısmındaki bağlantıları izleyin.
+# HomepageTextPrefix4: Carnap'ı sadece merak ediyorsanız, bazı genel bilgileri sitemizin
+# HomepageTextLink4: hakkında
+# HomepageTextSuffix4: sayfasında bulabilirsiniz..
+# HomepageTextPrefix5: Projeyle ilgileniyorsanız ve Carnap'ı mantık öğrettiğiniz bir sınıfta kullanmak veya projeye başka bir şekilde dahil olmak istiyorsanız lütfen
+# HomepageTextLink5: irtibata geçmekten çekinmeyiniz!
 
 # templates/infopage.hamlet
 InfopageAboutCarnap: Carnap Hakkında
@@ -177,7 +177,7 @@ CarnapBookSpecialSections: Özel Kesimler:
 CarnapBookIndexOfRules: Kurallar Dizini
 CarnapBookLicense: altında lisanslıdır.
 
-FinishedTitle: Tamamlananlar
+FinishedTitle: Tamamlanan Problemler
 FinishedAssignment: Ödev
 FinishedExercises: Egzersizler
 FinishedPoints: Puanlar

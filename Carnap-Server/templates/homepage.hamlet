@@ -5,7 +5,6 @@
 
 
 <div#main.container>
-    <img.float-right.hidden-sm-down width=350px src=@{StaticR img_russell2_png}>
 
     <h2>_{MsgHomepageHeader}
 
@@ -15,11 +14,3 @@
         \ _{MsgHomepageTextPrefix2} #
         <a href="@{InfoR}#who">_{MsgHomepageTextLink2}
         \ _{MsgHomepageTextSuffix2}
-
-    <p> _{MsgHomepageText3}
-
-    <p> _{MsgHomepageTextPrefix4} #
-        <a href=@{InfoR}>_{MsgHomepageTextLink4}
-        \ _{MsgHomepageTextSuffix4} #
-        \ _{MsgHomepageTextPrefix5} #
-        <a href="mailto:gleachkr@ksu.edu">_{MsgHomepageTextLink5}
