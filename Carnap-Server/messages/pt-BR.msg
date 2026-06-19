@@ -1,7 +1,7 @@
 # templates/homepage.hamlet
 HomepageWelcome: Bem-vindo ao Carnap
 HomepageSubtitle: Uma plataforma para Lógica Formal em Haskell
-HomepageHeader: Do que se trata?
+# HomepageHeader: Do que se trata?
 HomepageTextPrefix1: Carnap é uma plataforma livre e aberta escrita em
 HomepageTextLink1: Haskell
 HomepageTextSuffix1: para ensinar e estudar lógica formal.

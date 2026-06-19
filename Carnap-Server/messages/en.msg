@@ -1,7 +1,7 @@
 # templates/homepage.hamlet
 HomepageWelcome: Carnap: Mississippi State
 HomepageSubtitle: A formal logic framework for Haskell
-HomepageHeader: Background
+# HomepageHeader: Background
 HomepageTextPrefix1: Carnap is a free and open software framework written in
 HomepageTextLink1: Haskell
 HomepageTextSuffix1: for teaching and studying formal logic. 

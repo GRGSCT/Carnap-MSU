@@ -1,7 +1,7 @@
 # templates/homepage.hamlet
 HomepageWelcome: Carnap.io sitesine hoş geldiniz!
 HomepageSubtitle: Haskell için formel mantık çerçevesi
-HomepageHeader: Arkaplan
+# HomepageHeader: Arkaplan
 HomepageTextPrefix1: Carnap, formel mantık öğretmek ve öğrenmek üzere
 HomepageTextLink1: Haskell
 HomepageTextSuffix1: dilinde yazılmış ücretsiz ve açık yazılım çerçevesidir.
