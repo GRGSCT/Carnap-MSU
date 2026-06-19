@@ -199,13 +199,14 @@ problemsToTable course accommodation textbookproblems asmdex submissions = do
                     Just k -> case elemIndex k (map entityKey asmd) of
                             Nothing -> [hamlet|No existing assignment|]
                             Just n -> let Entity _ a = asmd !! n in
-                                [hamlet| <a href=@{CourseAssignmentR (courseTitle course) (assignmentMetadataTitle a)}>#{assignmentMetadataTitle a}|]
+                                [hamlet|#{assignmentMetadataTitle a}|]
 
 finishedTableOf :: Course -> Int -> Maybe BookAssignmentTable
     -> [(Entity AssignmentMetadata, Maybe (Entity Extension))] -> [ProblemSubmission]
     -> HandlerFor App Html
 finishedTableOf course accommodation textbookproblems asmdex subs = do
-            rows <- mapM renderRow sortedGroups
+            time <- liftIO getCurrentTime
+            rows <- mapM (renderRow time) sortedGroups
             withUrlRenderer [hamlet|
                                     $forall row <- rows
                                         ^{row}|]
@@ -219,11 +220,23 @@ finishedTableOf course accommodation textbookproblems asmdex subs = do
                           Just n -> Right n
                           Nothing -> Right 0
 
-              getGroupTitle (Left aId) =
+              getGroupTitleHtml (Left aId) =
                   case filter (\(Entity k _, _) -> k == aId) asmdex of
-                      ((Entity _ a, _):_) -> assignmentMetadataTitle a
-                      _ -> "Unknown Assignment"
-              getGroupTitle (Right num) = "Problem Set " ++ pack (show num)
+                      ((Entity _ a, _):_) ->
+                          [hamlet|<a href=@{CourseAssignmentR (courseTitle course) (assignmentMetadataTitle a)}>#{assignmentMetadataTitle a}|]
+                      _ -> [hamlet|Unknown Assignment|]
+              getGroupTitleHtml (Right num) =
+                  case IM.lookup num chapterOfProblemSet of
+                      Just ch -> [hamlet|<a href=@{ChapterR ch}>Problem Set #{show num}|]
+                      Nothing -> [hamlet|Problem Set #{show num}|]
+
+              isReleasedGroup _ (Right _) = True
+              isReleasedGroup t (Left aId) =
+                  case filter (\(Entity k _, _) -> k == aId) asmdex of
+                      ((Entity _ a, _):_) -> case assignmentMetadataGradeRelease a of
+                          Nothing -> True
+                          Just d  -> t `laterThan` d
+                      _ -> True
 
               getExerciseIdent p =
                   let ident = problemSubmissionIdent p
@@ -254,14 +267,14 @@ finishedTableOf course accommodation textbookproblems asmdex subs = do
               sortExercises :: [Text] -> [Text]
               sortExercises exs = sortOn (\t -> (readMaybe (unpack t) :: Maybe Int, t)) (nub exs)
 
-              renderRow (gKey, (exs, score)) = do
-                  let title = getGroupTitle gKey
-                      exsStr = intercalate ", " (sortExercises exs)
+              renderRow time (gKey, (exs, score)) = do
+                  let exsStr = intercalate ", " (sortExercises exs)
+                      scoreStr = if isReleasedGroup time gKey then show score else "-"
                   return [hamlet|
                       <tr>
-                          <td>#{title}
+                          <td>^{getGroupTitleHtml gKey}
                           <td>#{exsStr}
-                          <td>#{score}|]
+                          <td>#{scoreStr}|]
 
 tryDelete :: (Semigroup a, IsString a) => a -> a
 tryDelete name = "tryDeleteRule(\"" <> name <> "\")"
