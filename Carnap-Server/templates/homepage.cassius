@@ -1,2 +1,5 @@
+.jumbotron
+    margin-top: 150px
+
 #main
     margin-bottom:100px
