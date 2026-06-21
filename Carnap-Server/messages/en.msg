@@ -185,7 +185,7 @@ UserPageHeader1: Homepage for
 UserPageText1: This is your homepage, where you can keep track of your progress in the course, and find other useful information.
 UserPageTextInstructor: Your instructor page is
 UserPageTextInstructorLink: here
-UserPageTable1Title: Upcoming Problems
+UserPageTable1Title: Assignments
 UserPageTable1DueDates: Due Dates
 UserPageTable2Title: Total Points Earned
 UserPageTable3Title: Record
