@@ -4,7 +4,7 @@
     $if isInstructor
         <p> _{MsgUserPageTextInstructor} 
             <a href=@{InstructorR ident}>_{MsgUserPageTextInstructorLink}
-    <h3> _{MsgUserPageTable1Title}
+    <h3 style="padding-top:10pt"> _{MsgUserPageTable1Title}
     <div.row>
         <div.col-md-8>
             <div.card>
@@ -57,7 +57,7 @@
                         <i class="fa fa-sort" aria-hidden="true"></i>
                 <tbody#problem-table-body>
                     #{subtable}
-    <h3> _{MsgUserPageTable4Title}
+    <h3 style="padding-top:10pt"> _{MsgUserPageTable4Title}
     <div.card>
         <div.card-header> _{MsgPersonalInformation}
         <div.card-block>
