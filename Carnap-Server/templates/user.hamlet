@@ -1,7 +1,6 @@
 <div.container>
     ^{updateWidget updateForm encTypeUpdate}
     <h1> _{MsgUserPageHeader1} #{firstname} #{lastname}
-    <p> _{MsgUserPageText1}
     $if isInstructor
         <p> _{MsgUserPageTextInstructor} 
             <a href=@{InstructorR ident}>_{MsgUserPageTextInstructorLink}
