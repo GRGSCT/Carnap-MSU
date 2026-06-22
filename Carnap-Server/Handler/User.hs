@@ -247,6 +247,7 @@ finishedTableOf course accommodation textbookproblems asmdex subs = do
                           case break (== '.') (unpack ident) of
                               (_, "") -> ident
                               (_, '.':rest) -> pack rest
+                              _ -> ident
 
               getScore p = toScoreAny textbookproblems asmdex accommodation p
 
