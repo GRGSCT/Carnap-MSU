@@ -1051,7 +1051,8 @@ classWidget instructors classent autoreg = do
        coInstructorUD <- mapM udByInstructorId (map (coInstructorIdent . entityVal) coInstructors)
        theInstructorUD <- entityVal <$> udByInstructorId (courseInstructor course)
        allUserData <- map entityVal <$> (runDB $ selectList [UserDataEnrolledIn ==. Just cid] [])
-       asmd <- runDB $ selectList [AssignmentMetadataCourse ==. cid] [Asc AssignmentMetadataOrdering, Asc AssignmentMetadataId]
+       asmdUnsorted <- runDB $ selectList [AssignmentMetadataCourse ==. cid] []
+       let asmd = sortOn (\a -> (assignmentMetadataOrdering (entityVal a), entityKey a)) asmdUnsorted
        let allUids = map userDataUserId allUserData
        musers <- mapM (\x -> runDB (get x)) allUids
        let users = catMaybes musers
@@ -1230,5 +1231,6 @@ maybeDo mv f = case mv of Just v -> f v; _ -> return ()
 listAssignmentMetadata
     :: Entity Course
     -> (HandlerFor App [(Entity AssignmentMetadata, Entity Course)])
-listAssignmentMetadata theclass = do asmd <- runDB $ selectList [AssignmentMetadataCourse ==. entityKey theclass] [Asc AssignmentMetadataOrdering, Asc AssignmentMetadataId]
+listAssignmentMetadata theclass = do asmdUnsorted <- runDB $ selectList [AssignmentMetadataCourse ==. entityKey theclass] []
+                                     let asmd = sortOn (\a -> (assignmentMetadataOrdering (entityVal a), entityKey a)) asmdUnsorted
                                      return $ map (\a -> (a,theclass)) asmd
