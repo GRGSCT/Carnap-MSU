@@ -739,7 +739,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         for (const [course, ids] of Object.entries(courseGroups)) {
-            const apiurl = `/api/v1/instructors/#{ident}/courses/${encodeURIComponent(course)}/assignments/reorder`;
+            const apiurl = `/api/v1/instructors/#{ident}/courses/${encodeURIComponent(course)}/reorder-assignments`;
             fetch(apiurl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
