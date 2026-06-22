@@ -82,9 +82,9 @@
                                     Course
                                     <i class="fa fa-sort" aria-hidden="true"></i>
                                 <th> Actions
-                            <tbody>
+                            <tbody#sortable-assignments>
                                 $forall (Entity k a, Entity _ c) <- assignmentMetadata 
-                                    <tr id="assignment-#{courseTitle c}-#{assignmentMetadataTitle a}">
+                                    <tr.sortable-row id="assignment-#{courseTitle c}-#{assignmentMetadataTitle a}" data-id="#{jsonSerialize k}" data-course="#{courseTitle c}" draggable="true" style="cursor: move;">
                                         <td>
                                             <a href=@{CourseAssignmentR (courseTitle c) (assignmentMetadataTitle a)}>
                                                 #{assignmentMetadataTitle a}

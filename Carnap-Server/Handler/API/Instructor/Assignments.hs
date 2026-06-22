@@ -59,6 +59,20 @@ getAPIInstructorAssignmentR ident coursetitle asid = do
              assignment <- runDB $ assignmentPartOf asid cid
              returnJson assignment
 
+postAPIInstructorAssignmentsReorderR :: Text -> Text -> Handler Value
+postAPIInstructorAssignmentsReorderR ident coursetitle = do
+             Entity cid _ <- canAccessClass ident coursetitle
+             assignmentIds <- requireCheckJsonBody :: Handler [AssignmentMetadataId]
+             runDB $ do
+                 mapM_ (\(asid, idx) -> do
+                     masgn <- get asid
+                     case masgn of
+                         Just a | assignmentMetadataCourse a == cid ->
+                             update asid [AssignmentMetadataOrdering =. idx]
+                         _ -> return ()
+                     ) (zip assignmentIds [1..])
+             returnJson ("Order updated" :: Text)
+
 data AssignmentPatch = AssignmentPatch
                        { patchGradeRelease  :: Maybe (Maybe String)
                        , patchTotalProblems :: Maybe (Maybe Int)
@@ -69,6 +83,7 @@ data AssignmentPatch = AssignmentPatch
                        , patchAvailability  :: Maybe (Maybe AvailabilityStatus)
                        , patchPointValue    :: Maybe (Maybe Int)
                        , patchTitle         :: Maybe Text
+                       , patchOrdering      :: Maybe (Maybe Int)
                        }
 
 instance FromJSON AssignmentPatch where
@@ -82,6 +97,7 @@ instance FromJSON AssignmentPatch where
             patchAvailability <- o .:! "availability"
             patchPointValue <- o .:! "pointValue"
             patchTitle <- o .:? "title"
+            patchOrdering <- o .:! "ordering"
             return $ AssignmentPatch {..}
 
 patchAPIInstructorAssignmentR :: Text -> Text -> AssignmentMetadataId -> Handler Value
@@ -100,6 +116,7 @@ patchAPIInstructorAssignmentR ident coursetitle asid = do
                                     , maybeUpdate AssignmentMetadataAvailability (patchAvailability patch)
                                     , maybeUpdate AssignmentMetadataPointValue (patchPointValue patch)
                                     , maybeUpdate AssignmentMetadataTitle (patchTitle patch)
+                                    , maybeUpdate AssignmentMetadataOrdering (patchOrdering patch)
                                     ]
              returnJson asgn'
     where maybeUpdate field (Just val) = [field =. val]

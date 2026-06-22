@@ -159,6 +159,7 @@ AssignmentMetadata json
     availability AvailabilityStatus Maybe
     pointValue Int Maybe
     totalProblems Int Maybe
+    ordering Int default=0
     UniqueAssignmentName title course
 
 AssignmentAccessToken json
