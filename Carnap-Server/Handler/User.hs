@@ -17,7 +17,7 @@ import Util.Grades
 import qualified Data.IntMap as IM
 import Data.IntMap ((!))
 import qualified Data.Map as Map
-import Data.List (nub)
+import Data.List (nub, sortBy)
 
 postUserR :: Text -> Handler Html
 postUserR ident = do
@@ -104,7 +104,7 @@ getUserR ident = do
                             do asmdUnsorted <- case courseTextBook course of
                                            Nothing -> selectList [AssignmentMetadataCourse ==. cid] []
                                            Just tb -> selectList [AssignmentMetadataCourse ==. cid, AssignmentMetadataId !=. tb] []
-                               let asmd = sortOn (\a -> (assignmentMetadataOrdering (entityVal a), entityKey a)) asmdUnsorted
+                               let asmd = sortBy (\a b -> compare (assignmentMetadataOrdering (entityVal a), entityKey a) (assignmentMetadataOrdering (entityVal b), entityKey b)) asmdUnsorted
                                accommodation <- getBy (UniqueAccommodation cid uid)
                                             >>= return . maybe 0 (accommodationDateExtraHours . entityVal)
                                extensions <- mapM (\asgn -> getBy $ UniqueExtension (entityKey asgn) uid) asmd 
@@ -257,16 +257,18 @@ finishedTableOf course accommodation textbookproblems asmdex subs = do
                   insertSub (gKey, (exIdent, score)) m =
                       Map.insertWith (\(exsNew, scNew) (exsOld, scOld) -> (exsNew ++ exsOld, scNew + scOld)) gKey ([exIdent], score) m
 
+              sortKey :: Either AssignmentMetadataId Int -> (Int, Int)
               sortKey (Right num) = (0, num)
               sortKey (Left aId) =
                   case elemIndex aId (map (entityKey . fst) asmdex) of
                       Just idx -> (1, idx)
                       Nothing -> (2, 0)
 
-              sortedGroups = sortOn (sortKey . fst) (Map.toList groupedMap)
+              sortedGroups :: [(Either AssignmentMetadataId Int, ([Text], Int))]
+              sortedGroups = sortBy (\a b -> compare (sortKey (fst a)) (sortKey (fst b))) (Map.toList groupedMap)
 
               sortExercises :: [Text] -> [Text]
-              sortExercises exs = sortOn (\t -> (readMaybe (unpack t) :: Maybe Int, t)) (nub exs)
+              sortExercises exs = sortBy (\t1 t2 -> compare (readMaybe (unpack t1) :: Maybe Int, t1) (readMaybe (unpack t2) :: Maybe Int, t2)) (nub exs)
 
               renderRow time (gKey, (exs, score)) = do
                   let exsStr = intercalate ", " (sortExercises exs)
