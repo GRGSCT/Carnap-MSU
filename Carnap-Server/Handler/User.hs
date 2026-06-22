@@ -101,9 +101,10 @@ getUserR ident = do
                     let Just cid = maybeCourseId
                     textbookproblems <- getProblemSets cid
                     (asmd, extensions, accommodation,subs) <- runDB $ 
-                            do asmd <- case courseTextBook course of
-                                           Nothing -> selectList [AssignmentMetadataCourse ==. cid] [Asc AssignmentMetadataOrdering, Asc AssignmentMetadataId]
-                                           Just tb -> selectList [AssignmentMetadataCourse ==. cid, AssignmentMetadataId !=. tb] [Asc AssignmentMetadataOrdering, Asc AssignmentMetadataId]
+                            do asmdUnsorted <- case courseTextBook course of
+                                           Nothing -> selectList [AssignmentMetadataCourse ==. cid] []
+                                           Just tb -> selectList [AssignmentMetadataCourse ==. cid, AssignmentMetadataId !=. tb] []
+                               let asmd = sortOn (\a -> (assignmentMetadataOrdering (entityVal a), entityKey a)) asmdUnsorted
                                accommodation <- getBy (UniqueAccommodation cid uid)
                                             >>= return . maybe 0 (accommodationDateExtraHours . entityVal)
                                extensions <- mapM (\asgn -> getBy $ UniqueExtension (entityKey asgn) uid) asmd 
