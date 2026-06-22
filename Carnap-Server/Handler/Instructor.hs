@@ -275,6 +275,7 @@ postInstructorR ident = do
                                                             (Just txt, Just True, Just mins) -> Just (HiddenViaPasswordExpiring txt mins)
                                                             (Just txt, _, Just mins) -> Just (ViaPasswordExpiring txt mins)
                                                             (Just txt, _, _) -> Just (ViaPassword txt)
+                                                , assignmentMetadataOrdering = 0
                                                 }
                            case success of Just _ -> return ()
                                            Nothing -> setMessage "This file has already been assigned for this course"
