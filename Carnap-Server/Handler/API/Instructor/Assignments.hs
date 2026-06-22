@@ -24,6 +24,7 @@ postAPIInstructorAssignmentsR ident coursetitle = do
                          Object hm ->
                              let Just tz = tzByName . courseTimeZone $ course
                                  hm' = HM.insert "date" (toJSON time)
+                                     . HM.insert "ordering" (toJSON (0 :: Int))
                                      . HM.insert "assigner" (toJSON $ maybe Nothing (Just . entityKey) mcoInst)
                                      . HM.insert "course" (toJSON cid)
                                      . HM.adjust (handleDate tz) "duedate"
