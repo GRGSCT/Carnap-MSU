@@ -52,5 +52,5 @@ jobs:
           signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
 
       # run it in serial because we are getting attacked by the OOM killer lol
-      - run: nix-build -A client
-      - run: nix-build -A server
+      - run: nix-build -A client -L
+      - run: nix-build -A server -L
