@@ -258,11 +258,11 @@ finishedTableOf course accommodation textbookproblems asmdex subs = do
                   insertSub (gKey, (exIdent, score)) m =
                       Map.insertWith (\(exsNew, scNew) (exsOld, scOld) -> (exsNew ++ exsOld, scNew + scOld)) gKey ([exIdent], score) m
 
-              sortKey (Right num) = (0, num)
+              sortKey (Right num) = (0 :: Int, num)
               sortKey (Left aId) =
                   case elemIndex aId (map (entityKey . fst) asmdex) of
-                      Just idx -> (1, idx)
-                      Nothing -> (2, 0)
+                      Just idx -> (1 :: Int, idx)
+                      Nothing -> (2 :: Int, 0)
 
               sortedGroups = sortBy (\a b -> compare (sortKey (fst a)) (sortKey (fst b))) (Map.toList groupedMap)
 
