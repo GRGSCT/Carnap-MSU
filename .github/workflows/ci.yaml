@@ -53,11 +53,4 @@ jobs:
 
       # run it in serial because we are getting attacked by the OOM killer lol
       - run: nix-build -A client
-      - name: Build Server
-        run: |
-          nix-build -A server || {
-            echo "=== FULL BUILD LOG ==="
-            DRV=$(nix-instantiate -A server 2>/dev/null)
-            nix log "$DRV" 2>/dev/null || echo "Could not retrieve full log"
-            exit 1
-          }
+      - run: nix-build -A server --option log-lines 200
