@@ -1077,20 +1077,18 @@ classWidget instructors classent autoreg = do
                     <div.scrollbox>
                         <table.assignment.table.table-striped>
                             <thead>
-                                <th style="cursor:pointer" onclick="sortByCol(this,0)">
+                                <th>
                                     Assignment
-                                    <i class="fa fa-sort" aria-hidden="true"></i>
-                                <th style="cursor:pointer" onclick="sortByCol(this,1)">
+                                <th>
                                     Due Date
-                                    <i class="fa fa-sort" aria-hidden="true"></i>
-                            <tbody>
+                            <tbody.sortable-course-assignments data-course="#{courseTitle course}">
                                 $maybe probs <- mprobs
                                     $forall (set,due) <- Data.IntMap.toList probs
                                         <tr>
                                             <td>Problem Set #{show set}
                                             <td>#{dateDisplay due course}
-                                $forall Entity _ a <- asmd
-                                    <tr>
+                                $forall Entity k a <- asmd
+                                    <tr.sortable-row data-id="#{jsonSerialize k}" draggable="true" style="cursor: move;">
                                         <td>
                                             <a href=@{CourseAssignmentR (courseTitle course) (assignmentMetadataTitle a)}>
                                                 #{assignmentMetadataTitle a}
