@@ -258,17 +258,14 @@ finishedTableOf course accommodation textbookproblems asmdex subs = do
                   insertSub (gKey, (exIdent, score)) m =
                       Map.insertWith (\(exsNew, scNew) (exsOld, scOld) -> (exsNew ++ exsOld, scNew + scOld)) gKey ([exIdent], score) m
 
-              sortKey :: Either AssignmentMetadataId Int -> (Int, Int)
               sortKey (Right num) = (0, num)
               sortKey (Left aId) =
                   case elemIndex aId (map (entityKey . fst) asmdex) of
                       Just idx -> (1, idx)
                       Nothing -> (2, 0)
 
-              sortedGroups :: [(Either AssignmentMetadataId Int, ([Text], Int))]
               sortedGroups = sortBy (\a b -> compare (sortKey (fst a)) (sortKey (fst b))) (Map.toList groupedMap)
 
-              sortExercises :: [Text] -> [Text]
               sortExercises exs = sortBy (\t1 t2 -> compare (readMaybe (unpack t1) :: Maybe Int, t1) (readMaybe (unpack t2) :: Maybe Int, t2)) (nub exs)
 
               renderRow time (gKey, (exs, score)) = do
