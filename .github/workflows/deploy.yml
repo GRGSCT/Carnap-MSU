@@ -44,13 +44,7 @@ jobs:
 
       # 2. Build the Backend into a specific output link
       - name: Build Server (Backend)
-        run: |
-          nix-build -A server -o result-server || {
-            echo "=== FULL BUILD LOG ==="
-            DRV=$(nix-instantiate -A server 2>/dev/null)
-            nix log "$DRV" 2>/dev/null || echo "Could not retrieve full log"
-            exit 1
-          }
+        run: nix-build -A server -o result-server --option log-lines 200
 
       # 3. Use the native Nix teleporter (Replaces SCP entirely)
       - name: Deploy to Live Server
