@@ -691,54 +691,52 @@ $(document).ready(_ => {
 })
 
 document.addEventListener('DOMContentLoaded', () => {
-    const tableBody = document.getElementById('sortable-assignments');
-    if (!tableBody) return;
+    document.querySelectorAll('.sortable-course-assignments').forEach((tableBody) => {
+        const course = tableBody.dataset.course;
+        if (!course) return;
 
-    let draggedRow = null;
+        let draggedRow = null;
 
-    tableBody.addEventListener('dragstart', (e) => {
-        draggedRow = e.target.closest('tr.sortable-row');
-        if (!draggedRow) return;
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/html', draggedRow.outerHTML);
-        setTimeout(() => draggedRow.classList.add('d-none'), 0);
-    });
-
-    tableBody.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        const targetRow = e.target.closest('tr.sortable-row');
-        if (targetRow && targetRow !== draggedRow) {
-            const bounding = targetRow.getBoundingClientRect();
-            const offset = bounding.y + (bounding.height / 2);
-            if (e.clientY - offset > 0) {
-                targetRow.after(draggedRow);
-            } else {
-                targetRow.before(draggedRow);
-            }
-        }
-    });
-
-    tableBody.addEventListener('dragend', (e) => {
-        if (draggedRow) {
-            draggedRow.classList.remove('d-none');
-            draggedRow = null;
-        }
-        
-        const courseGroups = {};
-        Array.from(tableBody.querySelectorAll('tr.sortable-row')).forEach((row) => {
-            const course = row.dataset.course;
-            const idText = row.dataset.id;
-            let parsedId;
-            try {
-                parsedId = JSON.parse(idText);
-            } catch (err) {
-                parsedId = idText;
-            }
-            if (!courseGroups[course]) courseGroups[course] = [];
-            courseGroups[course].push(parsedId);
+        tableBody.addEventListener('dragstart', (e) => {
+            draggedRow = e.target.closest('tr.sortable-row');
+            if (!draggedRow) return;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', draggedRow.outerHTML);
+            setTimeout(() => draggedRow.classList.add('d-none'), 0);
         });
 
-        for (const [course, ids] of Object.entries(courseGroups)) {
+        tableBody.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const targetRow = e.target.closest('tr.sortable-row');
+            if (targetRow && targetRow !== draggedRow) {
+                const bounding = targetRow.getBoundingClientRect();
+                const offset = bounding.y + (bounding.height / 2);
+                if (e.clientY - offset > 0) {
+                    targetRow.after(draggedRow);
+                } else {
+                    targetRow.before(draggedRow);
+                }
+            }
+        });
+
+        tableBody.addEventListener('dragend', (e) => {
+            if (draggedRow) {
+                draggedRow.classList.remove('d-none');
+                draggedRow = null;
+            }
+
+            const ids = [];
+            Array.from(tableBody.querySelectorAll('tr.sortable-row')).forEach((row) => {
+                const idText = row.dataset.id;
+                let parsedId;
+                try {
+                    parsedId = JSON.parse(idText);
+                } catch (err) {
+                    parsedId = idText;
+                }
+                ids.push(parsedId);
+            });
+
             const apiurl = `/api/v1/instructors/#{ident}/courses/${encodeURIComponent(course)}/reorder-assignments`;
             fetch(apiurl, {
                 method: 'POST',
@@ -747,6 +745,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }).then(r => {
                 if(!r.ok) console.error("Reorder failed for " + course);
             }).catch(console.error);
-        }
+        });
     });
 });
