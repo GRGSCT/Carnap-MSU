@@ -18,6 +18,7 @@ import qualified Data.IntMap as IM
 import Data.IntMap ((!))
 import qualified Data.Map as Map
 import Data.List (nub)
+import qualified Data.List as DL
 
 postUserR :: Text -> Handler Html
 postUserR ident = do
@@ -104,7 +105,7 @@ getUserR ident = do
                             do asmdUnsorted <- case courseTextBook course of
                                            Nothing -> selectList [AssignmentMetadataCourse ==. cid] []
                                            Just tb -> selectList [AssignmentMetadataCourse ==. cid, AssignmentMetadataId !=. tb] []
-                               let asmd = sortBy (\a b -> compare (assignmentMetadataOrdering (entityVal a), entityKey a) (assignmentMetadataOrdering (entityVal b), entityKey b)) asmdUnsorted
+                               let asmd = DL.sortBy (\a b -> compare (assignmentMetadataOrdering (entityVal a), entityKey a) (assignmentMetadataOrdering (entityVal b), entityKey b)) asmdUnsorted
                                accommodation <- getBy (UniqueAccommodation cid uid)
                                             >>= return . maybe 0 (accommodationDateExtraHours . entityVal)
                                extensions <- mapM (\asgn -> getBy $ UniqueExtension (entityKey asgn) uid) asmd 
@@ -264,9 +265,9 @@ finishedTableOf course accommodation textbookproblems asmdex subs = do
                       Just idx -> (1 :: Int, idx)
                       Nothing -> (2 :: Int, 0)
 
-              sortedGroups = sortBy (\a b -> compare (sortKey (fst a)) (sortKey (fst b))) (Map.toList groupedMap)
+              sortedGroups = DL.sortBy (\a b -> compare (sortKey (fst a)) (sortKey (fst b))) (Map.toList groupedMap)
 
-              sortExercises exs = sortBy (\t1 t2 -> compare (readMaybe (unpack t1) :: Maybe Int, t1) (readMaybe (unpack t2) :: Maybe Int, t2)) (nub exs)
+              sortExercises exs = DL.sortBy (\t1 t2 -> compare (readMaybe (unpack t1) :: Maybe Int, t1) (readMaybe (unpack t2) :: Maybe Int, t2)) (nub exs)
 
               renderRow time (gKey, (exs, score)) = do
                   let exsStr = intercalate ", " (sortExercises exs)
