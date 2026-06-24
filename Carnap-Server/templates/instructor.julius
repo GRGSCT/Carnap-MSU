@@ -737,7 +737,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 ids.push(parsedId);
             });
 
-            const apiurl = `/api/v1/instructors/#{ident}/courses/${encodeURIComponent(course)}/reorder-assignments`;
+            const instrIdent = #{ident};
+            const apiurl = `/api/v1/instructors/${instrIdent}/courses/${encodeURIComponent(course)}/reorder-assignments`;
             const payload = JSON.stringify(ids);
             console.log("Reorder URL:", apiurl);
             console.log("Reorder payload:", payload);
