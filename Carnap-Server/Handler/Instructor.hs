@@ -1088,10 +1088,11 @@ classWidget instructors classent autoreg = do
                                             <td>Problem Set #{show set}
                                             <td>#{dateDisplay due course}
                                 $forall Entity k a <- asmd
-                                    <tr.sortable-row data-id="#{jsonSerialize k}" draggable="true" style="cursor: move;">
+                                    <tr.sortable-row data-id="#{jsonSerialize k}" data-ordering="#{show (assignmentMetadataOrdering a)}" draggable="true" style="cursor: move;">
                                         <td>
                                             <a href=@{CourseAssignmentR (courseTitle course) (assignmentMetadataTitle a)}>
                                                 #{assignmentMetadataTitle a}
+                                            \ [ord:#{show (assignmentMetadataOrdering a)}]
                                         $maybe due <- assignmentMetadataDuedate a
                                             <td>#{dateDisplay due course}
                                         $nothing
