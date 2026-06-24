@@ -74,9 +74,18 @@ postAPIInstructorAssignmentsReorderR ident coursetitle = do
                          Just _ -> return ("wrong course" :: Text)
                          Nothing -> return ("not found" :: Text)
                      ) (zip assignmentIds [1 :: Int ..])
+             -- Verification: re-read ordering values after update
+             verification <- runDB $ do
+                 mapM (\asid -> do
+                     masgn <- get asid
+                     return $ case masgn of
+                         Just a -> toJSON (assignmentMetadataOrdering a)
+                         Nothing -> toJSON ("gone" :: Text)
+                     ) assignmentIds
              returnJson $ object [ "message" .= ("Order updated" :: Text)
                                  , "received" .= length assignmentIds
                                  , "results" .= results
+                                 , "verification" .= verification
                                  ]
 
 data AssignmentPatch = AssignmentPatch
