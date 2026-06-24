@@ -64,15 +64,20 @@ postAPIInstructorAssignmentsReorderR :: Text -> Text -> Handler Value
 postAPIInstructorAssignmentsReorderR ident coursetitle = do
              Entity cid _ <- canAccessClass ident coursetitle
              assignmentIds <- requireCheckJsonBody :: Handler [AssignmentMetadataId]
-             runDB $ do
-                 mapM_ (\(asid, idx) -> do
+             results <- runDB $ do
+                 mapM (\(asid, idx) -> do
                      masgn <- get asid
                      case masgn of
-                         Just a | assignmentMetadataCourse a == cid ->
+                         Just a | assignmentMetadataCourse a == cid -> do
                              update asid [AssignmentMetadataOrdering =. idx]
-                         _ -> return ()
-                     ) (zip assignmentIds [1..])
-             returnJson ("Order updated" :: Text)
+                             return ("updated" :: Text)
+                         Just _ -> return ("wrong course" :: Text)
+                         Nothing -> return ("not found" :: Text)
+                     ) (zip assignmentIds [1 :: Int ..])
+             returnJson $ object [ "message" .= ("Order updated" :: Text)
+                                 , "received" .= length assignmentIds
+                                 , "results" .= results
+                                 ]
 
 data AssignmentPatch = AssignmentPatch
                        { patchGradeRelease  :: Maybe (Maybe String)
