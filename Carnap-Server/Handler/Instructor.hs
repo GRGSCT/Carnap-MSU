@@ -11,6 +11,7 @@ import           Data.Time.Zones
 import           Data.Time.Zones.All
 import           Data.Time.Zones.DB
 import           Import
+import qualified Data.List             as DL
 import           System.Directory      (doesFileExist, removeFile)
 import           System.FilePath       (takeExtension)
 import           Text.Blaze.Html       (Markup, toMarkup)
@@ -1053,7 +1054,7 @@ classWidget instructors classent autoreg = do
        theInstructorUD <- entityVal <$> udByInstructorId (courseInstructor course)
        allUserData <- map entityVal <$> (runDB $ selectList [UserDataEnrolledIn ==. Just cid] [])
        asmdUnsorted <- runDB $ selectList [AssignmentMetadataCourse ==. cid] []
-       let asmd = sortBy (\a b -> compare (assignmentMetadataOrdering (entityVal a), entityKey a) (assignmentMetadataOrdering (entityVal b), entityKey b)) asmdUnsorted
+       let asmd = DL.sortBy (\a b -> compare (assignmentMetadataOrdering (entityVal a), entityKey a) (assignmentMetadataOrdering (entityVal b), entityKey b)) asmdUnsorted
        let allUids = map userDataUserId allUserData
        musers <- mapM (\x -> runDB (get x)) allUids
        let users = catMaybes musers
@@ -1232,5 +1233,5 @@ listAssignmentMetadata
     :: Entity Course
     -> (HandlerFor App [(Entity AssignmentMetadata, Entity Course)])
 listAssignmentMetadata theclass = do asmdUnsorted <- runDB $ selectList [AssignmentMetadataCourse ==. entityKey theclass] []
-                                     let asmd = sortBy (\a b -> compare (assignmentMetadataOrdering (entityVal a), entityKey a) (assignmentMetadataOrdering (entityVal b), entityKey b)) asmdUnsorted
+                                     let asmd = DL.sortBy (\a b -> compare (assignmentMetadataOrdering (entityVal a), entityKey a) (assignmentMetadataOrdering (entityVal b), entityKey b)) asmdUnsorted
                                      return $ map (\a -> (a,theclass)) asmd
