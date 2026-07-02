@@ -6,6 +6,7 @@ import           Data.Time
 import           Data.Time.Zones
 import           Data.Time.Zones.All
 import           Import
+import           Database.Persist.Sql    (rawExecute, rawSql, Single(..))
 import           Util.Data           (AvailabilityStatus (..))
 import           Util.Handler
 
@@ -64,28 +65,20 @@ postAPIInstructorAssignmentsReorderR :: Text -> Text -> Handler Value
 postAPIInstructorAssignmentsReorderR ident coursetitle = do
              Entity cid _ <- canAccessClass ident coursetitle
              assignmentIds <- requireCheckJsonBody :: Handler [AssignmentMetadataId]
-             results <- runDB $ do
-                 mapM (\(asid, idx) -> do
-                     masgn <- get asid
-                     case masgn of
-                         Just a | assignmentMetadataCourse a == cid -> do
-                             update asid [AssignmentMetadataOrdering =. idx]
-                             return ("updated" :: Text)
-                         Just _ -> return ("wrong course" :: Text)
-                         Nothing -> return ("not found" :: Text)
-                     ) (zip assignmentIds [1 :: Int ..])
-             -- Verification: re-read ordering values after update
-             verification <- runDB $ do
-                 mapM (\asid -> do
-                     masgn <- get asid
-                     return $ case masgn of
-                         Just a -> toJSON (assignmentMetadataOrdering a)
-                         Nothing -> toJSON ("gone" :: Text)
-                     ) assignmentIds
+             -- Use raw SQL to update ordering values
+             runDB $ do
+                 mapM_ (\(asid, idx) ->
+                     rawExecute "UPDATE assignment_metadata SET ordering = ? WHERE id = ? AND course = ?"
+                         [toPersistValue (idx :: Int), toPersistValue asid, toPersistValue cid]
+                     ) (zip assignmentIds [1..])
+             -- Verification: raw SQL read in a separate transaction
+             rawValues <- runDB $ do
+                 rawSql "SELECT id, ordering FROM assignment_metadata WHERE course = ? ORDER BY ordering ASC"
+                     [toPersistValue cid]
+             let verifyList = map (\(Single aid, Single ord') -> object ["id" .= (aid :: Int), "ordering" .= (ord' :: Int)]) rawValues
              returnJson $ object [ "message" .= ("Order updated" :: Text)
                                  , "received" .= length assignmentIds
-                                 , "results" .= results
-                                 , "verification" .= verification
+                                 , "rawVerification" .= verifyList
                                  ]
 
 data AssignmentPatch = AssignmentPatch
