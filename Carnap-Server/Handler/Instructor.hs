@@ -11,7 +11,7 @@ import           Data.Time.Zones
 import           Data.Time.Zones.All
 import           Data.Time.Zones.DB
 import           Import
-import           Database.Persist.Sql    (rawSql, Single(..), connRDBMS)
+import           Database.Persist.Sql    (rawSql, Single(..))
 import           System.Directory      (doesFileExist, removeFile)
 import           System.FilePath       (takeExtension)
 import           Text.Blaze.Html       (Markup, toMarkup)
