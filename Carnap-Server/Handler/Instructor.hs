@@ -1054,8 +1054,10 @@ classWidget instructors classent autoreg = do
        theInstructorUD <- entityVal <$> udByInstructorId (courseInstructor course)
        allUserData <- map entityVal <$> (runDB $ selectList [UserDataEnrolledIn ==. Just cid] [])
        asmd <- runDB $ selectList [AssignmentMetadataCourse ==. cid] [Asc AssignmentMetadataOrdering, Asc AssignmentMetadataId]
-       rawDebug <- runDB $ rawSql "SELECT id, ordering FROM assignment_metadata WHERE course = ? ORDER BY ordering ASC" [toPersistValue cid]
+       rawDebugRows <- runDB $ rawSql "SELECT id, ordering FROM assignment_metadata WHERE course = ? ORDER BY ordering ASC" [toPersistValue cid]
        master <- getYesod
+       let rawDebugStr = T.intercalate "; " [ "id=" <> pack (show (aid :: Int)) <> "/ord=" <> pack (show (ord' :: Int)) | (Single aid, Single ord') <- rawDebugRows ] :: Text
+           debugDataroot = pack (appDataRoot $ appSettings master) :: Text
        let allUids = map userDataUserId allUserData
        musers <- mapM (\x -> runDB (get x)) allUids
        let users = catMaybes musers
@@ -1077,11 +1079,9 @@ classWidget instructors classent autoreg = do
                     ^{deleteTokenModal}
                     <h2>Assignments
                     <p style="font-size:11px;color:#888">
-                        DEBUG dataroot: #{appDataRoot $ appSettings master}
+                        DEBUG dataroot: #{debugDataroot}
                     <p style="font-size:11px;color:#888">
-                        DEBUG raw SQL ordering:
-                        $forall (Single aid, Single ord') <- rawDebug
-                            \ id=#{show (aid :: Int)}/ord=#{show (ord' :: Int)};
+                        DEBUG raw SQL ordering: #{rawDebugStr}
                     <div.scrollbox>
                         <table.assignment.table.table-striped>
                             <thead>
