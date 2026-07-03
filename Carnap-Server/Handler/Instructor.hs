@@ -11,6 +11,7 @@ import           Data.Time.Zones
 import           Data.Time.Zones.All
 import           Data.Time.Zones.DB
 import           Import
+import           Database.Persist.Sql    (rawSql, Single(..), connRDBMS)
 import           System.Directory      (doesFileExist, removeFile)
 import           System.FilePath       (takeExtension)
 import           Text.Blaze.Html       (Markup, toMarkup)
@@ -1053,6 +1054,8 @@ classWidget instructors classent autoreg = do
        theInstructorUD <- entityVal <$> udByInstructorId (courseInstructor course)
        allUserData <- map entityVal <$> (runDB $ selectList [UserDataEnrolledIn ==. Just cid] [])
        asmd <- runDB $ selectList [AssignmentMetadataCourse ==. cid] [Asc AssignmentMetadataOrdering, Asc AssignmentMetadataId]
+       rawDebug <- runDB $ rawSql "SELECT id, ordering FROM assignment_metadata WHERE course = ? ORDER BY ordering ASC" [toPersistValue cid]
+       master <- getYesod
        let allUids = map userDataUserId allUserData
        musers <- mapM (\x -> runDB (get x)) allUids
        let users = catMaybes musers
@@ -1073,6 +1076,12 @@ classWidget instructors classent autoreg = do
                     ^{updateCourseModal updateCourseWidget enctypeUpdateCourse}
                     ^{deleteTokenModal}
                     <h2>Assignments
+                    <p style="font-size:11px;color:#888">
+                        DEBUG dataroot: #{appDataRoot $ appSettings master}
+                    <p style="font-size:11px;color:#888">
+                        DEBUG raw SQL ordering:
+                        $forall (Single aid, Single ord') <- rawDebug
+                            \ id=#{show (aid :: Int)}/ord=#{show (ord' :: Int)};
                     <div.scrollbox>
                         <table.assignment.table.table-striped>
                             <thead>
