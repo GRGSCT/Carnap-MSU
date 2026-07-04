@@ -11,7 +11,6 @@ import           Data.Time.Zones
 import           Data.Time.Zones.All
 import           Data.Time.Zones.DB
 import           Import
-import           Database.Persist.Sql    (rawSql, Single(..))
 import           System.Directory      (doesFileExist, removeFile)
 import           System.FilePath       (takeExtension)
 import           Text.Blaze.Html       (Markup, toMarkup)
@@ -1054,10 +1053,6 @@ classWidget instructors classent autoreg = do
        theInstructorUD <- entityVal <$> udByInstructorId (courseInstructor course)
        allUserData <- map entityVal <$> (runDB $ selectList [UserDataEnrolledIn ==. Just cid] [])
        asmd <- runDB $ selectList [AssignmentMetadataCourse ==. cid] [Asc AssignmentMetadataOrdering, Asc AssignmentMetadataId]
-       rawDebugRows <- runDB $ rawSql "SELECT id, ordering FROM assignment_metadata WHERE course = ? ORDER BY ordering ASC" [toPersistValue cid]
-       master <- getYesod
-       let rawDebugStr = T.intercalate "; " [ "id=" <> pack (show (aid :: Int)) <> "/ord=" <> pack (show (ord' :: Int)) | (Single aid, Single ord') <- rawDebugRows ] :: Text
-           debugDataroot = pack (appDataRoot $ appSettings master) :: Text
        let allUids = map userDataUserId allUserData
        musers <- mapM (\x -> runDB (get x)) allUids
        let users = catMaybes musers
@@ -1078,10 +1073,6 @@ classWidget instructors classent autoreg = do
                     ^{updateCourseModal updateCourseWidget enctypeUpdateCourse}
                     ^{deleteTokenModal}
                     <h2>Assignments
-                    <p style="font-size:11px;color:#888">
-                        DEBUG dataroot: #{debugDataroot}
-                    <p style="font-size:11px;color:#888">
-                        DEBUG raw SQL ordering: #{rawDebugStr}
                     <div.scrollbox>
                         <table.assignment.table.table-striped>
                             <thead>
@@ -1096,11 +1087,10 @@ classWidget instructors classent autoreg = do
                                             <td>Problem Set #{show set}
                                             <td>#{dateDisplay due course}
                                 $forall Entity k a <- asmd
-                                    <tr.sortable-row data-id="#{jsonSerialize k}" data-ordering="#{show (assignmentMetadataOrdering a)}" draggable="true" style="cursor: move;">
+                                    <tr.sortable-row data-id="#{jsonSerialize k}" draggable="true" style="cursor: move;">
                                         <td>
                                             <a href=@{CourseAssignmentR (courseTitle course) (assignmentMetadataTitle a)}>
                                                 #{assignmentMetadataTitle a}
-                                            \ [ord:#{show (assignmentMetadataOrdering a)}]
                                         $maybe due <- assignmentMetadataDuedate a
                                             <td>#{dateDisplay due course}
                                         $nothing
