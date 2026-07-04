@@ -67,4 +67,3 @@ function calcTotalScore() {
 $("#drop-class").submit(_ => { return confirm("Are you sure you want to unenroll?\n\n If enrollment is closed, you may not be able to reenter the class.") })
 
 $(document).ready(_ => calcTotalScore())
-$(document).ready(_ => sortAssignments())
