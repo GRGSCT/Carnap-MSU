@@ -736,20 +736,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const instrIdent = #{ident};
             const apiurl = `/api/v1/instructors/${instrIdent}/courses/${encodeURIComponent(course)}/reorder-assignments`;
-            const payload = JSON.stringify(ids);
-            console.log("Reorder URL:", apiurl);
-            console.log("Reorder payload:", payload);
-            console.log("Parsed IDs:", ids);
             fetch(apiurl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: payload
+                body: JSON.stringify(ids)
             }).then(r => {
-                console.log("Reorder response status:", r.status);
-                return r.text().then(t => console.log("Reorder response body:", t));
-            }).then(() => {
-                if(false) console.error("Reorder failed for " + course);
-            }).catch(e => { console.error("Reorder fetch error:", e); });
+                if(!r.ok) console.error("Reorder failed for " + course);
+            }).catch(console.error);
         });
     });
 });
