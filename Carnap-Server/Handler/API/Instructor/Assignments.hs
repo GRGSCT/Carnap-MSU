@@ -6,7 +6,6 @@ import           Data.Time
 import           Data.Time.Zones
 import           Data.Time.Zones.All
 import           Import
-import           Database.Persist.Sql    (rawExecute, rawSql, Single(..))
 import           Util.Data           (AvailabilityStatus (..))
 import           Util.Handler
 
@@ -65,21 +64,15 @@ postAPIInstructorAssignmentsReorderR :: Text -> Text -> Handler Value
 postAPIInstructorAssignmentsReorderR ident coursetitle = do
              Entity cid _ <- canAccessClass ident coursetitle
              assignmentIds <- requireCheckJsonBody :: Handler [AssignmentMetadataId]
-             -- Use raw SQL to update ordering values
              runDB $ do
-                 mapM_ (\(asid, idx) ->
-                     rawExecute "UPDATE assignment_metadata SET ordering = ? WHERE id = ? AND course = ?"
-                         [toPersistValue (idx :: Int), toPersistValue asid, toPersistValue cid]
-                     ) (zip assignmentIds [1..])
-             -- Verification: raw SQL read in a separate transaction
-             rawValues <- runDB $ do
-                 rawSql "SELECT id, ordering FROM assignment_metadata WHERE course = ? ORDER BY ordering ASC"
-                     [toPersistValue cid]
-             let verifyList = map (\(Single aid, Single ord') -> object ["id" .= (aid :: Int), "ordering" .= (ord' :: Int)]) rawValues
-             returnJson $ object [ "message" .= ("Order updated" :: Text)
-                                 , "received" .= length assignmentIds
-                                 , "rawVerification" .= verifyList
-                                 ]
+                 mapM_ (\(asid, idx) -> do
+                     masgn <- get asid
+                     case masgn of
+                         Just a | assignmentMetadataCourse a == cid ->
+                             update asid [AssignmentMetadataOrdering =. idx]
+                         _ -> return ()
+                     ) (zip assignmentIds [1 :: Int ..])
+             returnJson $ object [ "message" .= ("Order updated" :: Text) ]
 
 data AssignmentPatch = AssignmentPatch
                        { patchGradeRelease  :: Maybe (Maybe String)
