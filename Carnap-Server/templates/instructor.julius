@@ -681,9 +681,6 @@ $(".scrollbox").scroll(scrollHandler);
 $(".scrollbox").trigger("scroll")
 
 $(document).ready(_ => {
-    Array.from(document.getElementsByClassName("assignment")).forEach(table => {
-        sortByCol(table,1)
-    })
     Array.from(document.getElementsByClassName("uploaded-documents")).forEach(table => {
         sortByCol(table,0)
     })
