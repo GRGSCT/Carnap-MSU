@@ -9,7 +9,7 @@ WorkingDirectory=/var/www/carnap
 Environment=STATIC_DIR=/var/www/carnap/server/share/static
 Environment=BOOKROOT=/var/www/carnap/server/share/book
 Environment=DATAROOT=/var/www/carnap/data
-Environment=APPROOT=http://validit.ee
+Environment=APPROOT=https://validit.ee
 ExecStart=/var/www/carnap/server/bin/Carnap-Server
 Restart=always
 RestartSec=3
