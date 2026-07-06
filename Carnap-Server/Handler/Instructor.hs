@@ -227,6 +227,7 @@ postInstructorR ident = do
     docs <- documentsByInstructorIdent ident
     instructors <- runDB $ selectList [UserDataInstructorId !=. Nothing] []
     ((assignmentrslt,_),_) <- runFormPost (identifyForm "uploadAssignment" $ uploadAssignmentForm activeClasses docs)
+    ((bulkassignrslt,_),_) <- runFormPost (identifyForm "bulkAssignment" bulkUploadAssignmentForm)
     ((documentrslt,_),_)   <- runFormPost (identifyForm "uploadDocument" $ uploadDocumentForm)
     ((newclassrslt,_),_)   <- runFormPost (identifyForm "createCourse" createCourseForm)
     ((frombookrslt,_),_)   <- runFormPost (identifyForm "setBookAssignment" $ setBookAssignmentForm activeClasses)
@@ -280,6 +281,10 @@ postInstructorR ident = do
                            case success of Just _ -> return ()
                                            Nothing -> setMessage "This file has already been assigned for this course"
         FormFailure s -> setMessage $ "Something went wrong: " ++ toMarkup (show s)
+        FormMissing -> return ()
+    case bulkassignrslt of
+        FormSuccess fi -> handleBulkAssignment ident fi
+        FormFailure s -> setMessage $ "Bulk assignment failed: " ++ toMarkup (show s)
         FormMissing -> return ()
     case documentrslt of
         FormSuccess (file, sharescope, docdesc, subtime, mtags) ->
@@ -471,6 +476,7 @@ getInstructorR ident = do
                 identForDocumentsRLinks = fromMaybe ident currentAlias'
 
             (createAssignmentWidget,enctypeCreateAssignment) <- generateFormPost (identifyForm "uploadAssignment" $ uploadAssignmentForm activeClasses documents)
+            (bulkAssignmentWidget,enctypeBulkAssignment) <- generateFormPost (identifyForm "bulkAssignment" bulkUploadAssignmentForm)
             (uploadDocumentWidget,enctypeShareDocument) <- generateFormPost (identifyForm "uploadDocument" $ uploadDocumentForm)
             (setBookAssignmentWidget,enctypeSetBookAssignment) <- generateFormPost (identifyForm "setBookAssignment" $ setBookAssignmentForm activeClasses)
             (updateAssignmentWidget,enctypeUpdateAssignment) <- generateFormPost (identifyForm "updateAssignment" $ updateAssignmentForm)
@@ -1231,3 +1237,142 @@ listAssignmentMetadata
     -> (HandlerFor App [(Entity AssignmentMetadata, Entity Course)])
 listAssignmentMetadata theclass = do asmd <- runDB $ selectList [AssignmentMetadataCourse ==. entityKey theclass] [Asc AssignmentMetadataOrdering, Asc AssignmentMetadataId]
                                      return $ map (\a -> (a,theclass)) asmd
+
+bulkUploadAssignmentForm :: Markup -> MForm (HandlerFor App) (FormResult FileInfo, WidgetFor App ())
+bulkUploadAssignmentForm = renderBootstrap3 BootstrapBasicForm $
+            fileAFormReq (bfs ("CSV File" :: Text))
+
+parseCSVLine :: String -> [String]
+parseCSVLine "" = []
+parseCSVLine s = case parseField s of
+    (field, rest) -> field : parseCSVLine rest
+  where
+    parseField ('"':xs) = parseQuoted xs ""
+    parseField xs = let (f, rest) = break (== ',') xs
+                    in (f, drop 1 rest)
+    parseQuoted ('"':'"':xs) acc = parseQuoted xs (acc ++ "\"")
+    parseQuoted ('"':',':xs) acc = (acc, xs)
+    parseQuoted ('"':[]) acc = (acc, "")
+    parseQuoted (x:xs) acc = parseQuoted xs (acc ++ [x])
+    parseQuoted [] acc = (acc, "")
+
+handleBulkAssignment :: Text -> FileInfo -> Handler ()
+handleBulkAssignment ident fi = do
+    datadir <- appDataRoot <$> (appSettings <$> getYesod)
+    let tmpPath = datadir </> "bulk_assign.tmp"
+    liftIO $ fileMove fi tmpPath
+    content <- liftIO $ do
+        s <- readFile tmpPath
+        length s `seq` return s
+    liftIO $ removeFile tmpPath
+    
+    let lns = lines content
+    let rows = drop 1 lns
+    let parsedRows = map parseCSVLine rows
+    
+    Entity _ user <- requireAuth
+    iid <- instructorIdByIdent (userIdent user)
+             >>= maybe (setMessage "failed to retrieve instructor" >> notFound) pure
+
+    currentTime <- liftIO getCurrentTime
+    
+    let processRow row = do
+            let at i = if i < length row then let val = trim (row !! i) in if null val then Nothing else Just val else Nothing
+            let file = at 0
+            let title = at 1
+            let courseName = at 2
+            let due = at 3 >>= parseExcelDate
+            let from = at 4 >>= parseExcelDate
+            let till = at 5 >>= parseExcelDate
+            let release = at 6 >>= parseExcelDate
+            let point = at 7 >>= readMaybe
+            let problems = at 8 >>= readMaybe
+            let desc = at 9 >>= Just . Textarea . T.pack
+            let pass = at 10 >>= Just . T.pack
+            let hidden = at 11 >>= \s -> Just (s == "true" || s == "True" || s == "1")
+            let limit = at 12 >>= readMaybe
+            
+            case (file, courseName) of
+                (Just fn, Just cn) -> do
+                    mCourse <- runDB $ getBy (UniqueCourse (T.pack cn))
+                    case mCourse of
+                        Just (Entity cid theclass) -> do
+                            owns <- checkCourseOwnership' ident cid
+                            if owns then do
+                                mciid <- if courseInstructor theclass == iid
+                                             then return Nothing
+                                             else runDB $ getBy (UniqueCoInstructor iid cid)
+                                let Just tz = tzByName . courseTimeZone $ theclass
+                                
+                                mDoc <- runDB $ selectFirst [DocumentFilename ==. T.pack fn, DocumentCreator ==. entityKey user] []
+                                case mDoc of
+                                    Just (Entity docId doc) -> do
+                                        let thename = documentFilename doc
+                                        let theTitle = maybe thename T.pack title
+                                        
+                                        let maccess = case (pass, hidden, limit) of
+                                                (Nothing,_,_) -> Nothing
+                                                (Just txt, Just True, Nothing) -> Just (HiddenViaPassword txt)
+                                                (Just txt, Just True, Just mins) -> Just (HiddenViaPasswordExpiring txt mins)
+                                                (Just txt, _, Just mins) -> Just (ViaPasswordExpiring txt mins)
+                                                (Just txt, _, _) -> Just (ViaPassword txt)
+                                                
+                                        success <- runDB $ insertUnique $ AssignmentMetadata
+                                            { assignmentMetadataDocument = docId
+                                            , assignmentMetadataTitle = theTitle
+                                            , assignmentMetadataDescription = desc
+                                            , assignmentMetadataAssigner = entityKey <$> mciid
+                                            , assignmentMetadataDuedate = localTimeToUTCTZ tz <$> due
+                                            , assignmentMetadataVisibleFrom = localTimeToUTCTZ tz <$> from
+                                            , assignmentMetadataVisibleTill = localTimeToUTCTZ tz <$> till
+                                            , assignmentMetadataGradeRelease = localTimeToUTCTZ tz <$> release
+                                            , assignmentMetadataPointValue = point
+                                            , assignmentMetadataTotalProblems = problems
+                                            , assignmentMetadataDate = currentTime
+                                            , assignmentMetadataCourse = cid
+                                            , assignmentMetadataAvailability = maccess
+                                            , assignmentMetadataOrdering = 0
+                                            }
+                                        case success of
+                                            Just _ -> return (Just (fn, cn, "Success"))
+                                            Nothing -> return (Just (fn, cn, "Already assigned"))
+                                    Nothing -> return (Just (fn, cn, "Document not found"))
+                            else return (Just (fn, cn, "Not authorized for course"))
+                        Nothing -> return (Just (fn, cn, "Course not found"))
+                _ -> return Nothing
+    
+    results <- mapM processRow parsedRows
+    let successes = length [r | Just (_, _, "Success") <- results]
+    setMessage $ toMarkup (show successes ++ " assignments created from " ++ show (length rows) ++ " rows.")
+
+  where
+    trim = reverse . dropWhile (== ' ') . reverse . dropWhile (== ' ')
+    parseExcelDate :: String -> Maybe LocalTime
+    parseExcelDate s = case parseTimeM True defaultTimeLocale "%-m/%-d/%Y %l:%M %p" s of
+        Just d -> Just d
+        Nothing -> parseTimeM True defaultTimeLocale "%Y-%m-%d %H:%M" s
+
+    checkCourseOwnership' ident' cid = do
+        user <- runDB (getBy $ UniqueUser ident')
+        case user of
+            Just (Entity _ u) -> do
+                mInstructor <- runDB (getBy $ UniqueUserData (userUserId u))
+                case mInstructor of
+                    Just (Entity _ ud) -> do
+                        let mIID = userDataInstructorId ud
+                        case mIID of
+                            Just iid' -> do
+                                course <- runDB $ get cid
+                                case course of
+                                    Just c ->
+                                        if courseInstructor c == iid'
+                                            then return True
+                                            else do
+                                                mCoinstr <- runDB $ getBy (UniqueCoInstructor iid' cid)
+                                                case mCoinstr of
+                                                    Just _ -> return True
+                                                    Nothing -> return False
+                                    Nothing -> return False
+                            Nothing -> return False
+                    Nothing -> return False
+            Nothing -> return False
