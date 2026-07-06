@@ -1312,8 +1312,9 @@ handleBulkAssignment ident fi = do
                     case mCourse of
                         Just (Entity cid theclass) -> do
                             owns <- checkCourseOwnership' ident cid
-                            if not owns then return (Just (fn, cn, "Not authorized for course"))
-                            else do
+                            if not owns
+                              then return (Just (fn, cn, "Not authorized for course"))
+                              else do
                                 mciid <- if courseInstructor theclass == iid
                                              then return Nothing
                                              else runDB $ getBy (UniqueCoInstructor iid cid)
