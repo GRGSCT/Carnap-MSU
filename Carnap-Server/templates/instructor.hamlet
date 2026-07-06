@@ -67,6 +67,14 @@
                         <div.form-group>
                             <input.btn.btn-primary type=submit value="Assign">
                     <hr style="margin-left:-20px;margin-right:-20px">
+                    <h2> Bulk Assign Documents
+                    <p>
+                        Upload a CSV file to assign multiple documents. It should include the following columns: File to Assign, Assignment Title, Assign to (Course), Due Date, Visible From, Visible To, Release Grades After, Point Value, Number of Problems, Description, Password, Hidden, Limit. Dates should be formatted as YYYY-MM-DD HH:MM or Excel format (M/D/YYYY h:mm AM/PM). Optional fields can be left blank.
+                    <form method=post action="#assignFromDocument" enctype=#{enctypeBulkAssignment}>
+                        ^{bulkAssignmentWidget}
+                        <div.form-group>
+                            <input.btn.btn-primary type=submit value="Bulk Assign">
+                    <hr style="margin-left:-20px;margin-right:-20px">
                     <h2> Edit Assignments
                     <div.table-responsive>
                         <table.table>
