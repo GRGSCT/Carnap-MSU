@@ -1270,6 +1270,20 @@ handleBulkAssignment ident fi = do
     let rows = drop 1 lns
     let parsedRows = map parseCSVLine rows
     
+handleBulkAssignment :: Text -> FileInfo -> Handler ()
+handleBulkAssignment ident fi = do
+    datadir <- appDataRoot <$> (appSettings <$> getYesod)
+    let tmpPath = datadir </> "bulk_assign.tmp"
+    liftIO $ fileMove fi tmpPath
+    content <- liftIO $ do
+        s <- readFile tmpPath
+        length s `seq` return s
+    liftIO $ removeFile tmpPath
+    
+    let lns = lines content
+    let rows = drop 1 lns
+    let parsedRows = map parseCSVLine rows
+    
     Entity _ user <- requireAuth
     iid <- instructorIdByIdent (userIdent user)
              >>= maybe (setMessage "failed to retrieve instructor" >> notFound) pure
@@ -1298,7 +1312,8 @@ handleBulkAssignment ident fi = do
                     case mCourse of
                         Just (Entity cid theclass) -> do
                             owns <- checkCourseOwnership' ident cid
-                            if owns then do
+                            if not owns then return (Just (fn, cn, "Not authorized for course"))
+                            else do
                                 mciid <- if courseInstructor theclass == iid
                                              then return Nothing
                                              else runDB $ getBy (UniqueCoInstructor iid cid)
@@ -1337,7 +1352,6 @@ handleBulkAssignment ident fi = do
                                             Just _ -> return (Just (fn, cn, "Success"))
                                             Nothing -> return (Just (fn, cn, "Already assigned"))
                                     Nothing -> return (Just (fn, cn, "Document not found"))
-                            else return (Just (fn, cn, "Not authorized for course"))
                         Nothing -> return (Just (fn, cn, "Course not found"))
                 _ -> return Nothing
     
