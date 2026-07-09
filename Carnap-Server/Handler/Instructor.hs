@@ -1238,6 +1238,7 @@ listAssignmentMetadata
 listAssignmentMetadata theclass = do asmd <- runDB $ selectList [AssignmentMetadataCourse ==. entityKey theclass] [Asc AssignmentMetadataOrdering, Asc AssignmentMetadataId]
                                      return $ map (\a -> (a,theclass)) asmd
 
+
 bulkUploadAssignmentForm :: Markup -> MForm (HandlerFor App) (FormResult FileInfo, WidgetFor App ())
 bulkUploadAssignmentForm = renderBootstrap3 BootstrapBasicForm $
             fileAFormReq (bfs ("CSV File" :: Text))
@@ -1256,20 +1257,6 @@ parseCSVLine s = case parseField s of
     parseQuoted (x:xs) acc = parseQuoted xs (acc ++ [x])
     parseQuoted [] acc = (acc, "")
 
-handleBulkAssignment :: Text -> FileInfo -> Handler ()
-handleBulkAssignment ident fi = do
-    datadir <- appDataRoot <$> (appSettings <$> getYesod)
-    let tmpPath = datadir </> "bulk_assign.tmp"
-    liftIO $ fileMove fi tmpPath
-    content <- liftIO $ do
-        s <- readFile tmpPath
-        length s `seq` return s
-    liftIO $ removeFile tmpPath
-    
-    let lns = lines content
-    let rows = drop 1 lns
-    let parsedRows = map parseCSVLine rows
-    
 handleBulkAssignment :: Text -> FileInfo -> Handler ()
 handleBulkAssignment ident fi = do
     datadir <- appDataRoot <$> (appSettings <$> getYesod)
