@@ -1284,16 +1284,16 @@ handleBulkAssignment ident fi = do
             let file = at 0
             let title = at 1
             let courseName = at 2
-            let due = at 3 >>= parseExcelDate
-            let from = at 4 >>= parseExcelDate
-            let till = at 5 >>= parseExcelDate
-            let release = at 6 >>= parseExcelDate
-            let point = at 7 >>= readMaybe
-            let problems = at 8 >>= readMaybe
-            let desc = at 9 >>= Just . T.pack
-            let pass = at 10 >>= Just . T.pack
-            let hidden = at 11 >>= \s -> Just (s == "true" || s == "True" || s == "1")
-            let limit = at 12 >>= readMaybe
+            let due = packTime (at 3 >>= parseDay) (at 4 >>= parseTime')
+            let from = packTime (at 5 >>= parseDay) (at 6 >>= parseTime')
+            let till = packTime (at 7 >>= parseDay) (at 8 >>= parseTime')
+            let release = packTime (at 9 >>= parseDay) (at 10 >>= parseTime')
+            let point = at 11 >>= readMaybe
+            let problems = at 12 >>= readMaybe
+            let desc = at 13 >>= Just . T.pack
+            let pass = at 14 >>= Just . T.pack
+            let hidden = at 15 >>= \s -> Just (s == "true" || s == "True" || s == "1")
+            let limit = at 16 >>= readMaybe
             
             case (file, courseName) of
                 (Just fn, Just cn) -> do
@@ -1351,10 +1351,17 @@ handleBulkAssignment ident fi = do
 
   where
     trim = reverse . dropWhile (== ' ') . reverse . dropWhile (== ' ')
-    parseExcelDate :: String -> Maybe LocalTime
-    parseExcelDate s = case parseTimeM True defaultTimeLocale "%-m/%-d/%Y %l:%M %p" s of
+    packTime Nothing _ = Nothing
+    packTime (Just d) Nothing = Just $ LocalTime d (TimeOfDay 23 59 59)
+    packTime (Just d) (Just t) = Just $ LocalTime d t
+    parseDay :: String -> Maybe Day
+    parseDay s = case parseTimeM True defaultTimeLocale "%-m/%-d/%Y" s of
         Just d -> Just d
-        Nothing -> parseTimeM True defaultTimeLocale "%Y-%m-%d %H:%M" s
+        Nothing -> parseTimeM True defaultTimeLocale "%Y-%m-%d" s
+    parseTime' :: String -> Maybe TimeOfDay
+    parseTime' s = case parseTimeM True defaultTimeLocale "%l:%M %p" s of
+        Just t -> Just t
+        Nothing -> parseTimeM True defaultTimeLocale "%H:%M" s
 
     checkCourseOwnership' ident' cid' = do
         classes <- classesByInstructorIdent ident'
