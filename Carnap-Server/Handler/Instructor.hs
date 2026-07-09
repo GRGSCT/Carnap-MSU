@@ -1278,7 +1278,9 @@ handleBulkAssignment ident fi = do
     currentTime <- liftIO getCurrentTime
     
     let processRow row = do
-            let at i = if i < length row then let val = trim (row !! i) in if null val then Nothing else Just val else Nothing
+            let at i = case drop i row of
+                         (v:_) -> let val = trim v in if null val then Nothing else Just val
+                         []    -> Nothing
             let file = at 0
             let title = at 1
             let courseName = at 2
@@ -1344,7 +1346,7 @@ handleBulkAssignment ident fi = do
                 _ -> return Nothing
     
     results <- mapM processRow parsedRows
-    let successes = length [r | Just (_, _, "Success") <- results]
+    let successes = length [() | Just (_, _, "Success") <- results]
     setMessage $ toMarkup (show successes ++ " assignments created from " ++ show (length rows) ++ " rows.")
 
   where
@@ -1354,27 +1356,6 @@ handleBulkAssignment ident fi = do
         Just d -> Just d
         Nothing -> parseTimeM True defaultTimeLocale "%Y-%m-%d %H:%M" s
 
-    checkCourseOwnership' ident' cid = do
-        user <- runDB (getBy $ UniqueUser ident')
-        case user of
-            Just (Entity _ u) -> do
-                mInstructor <- runDB (getBy $ UniqueUserData (userUserId u))
-                case mInstructor of
-                    Just (Entity _ ud) -> do
-                        let mIID = userDataInstructorId ud
-                        case mIID of
-                            Just iid' -> do
-                                course <- runDB $ get cid
-                                case course of
-                                    Just c ->
-                                        if courseInstructor c == iid'
-                                            then return True
-                                            else do
-                                                mCoinstr <- runDB $ getBy (UniqueCoInstructor iid' cid)
-                                                case mCoinstr of
-                                                    Just _ -> return True
-                                                    Nothing -> return False
-                                    Nothing -> return False
-                            Nothing -> return False
-                    Nothing -> return False
-            Nothing -> return False
+    checkCourseOwnership' ident' cid' = do
+        classes <- classesByInstructorIdent ident'
+        return $ cid' `elem` map entityKey classes
