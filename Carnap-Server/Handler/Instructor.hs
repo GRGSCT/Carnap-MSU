@@ -1290,7 +1290,7 @@ handleBulkAssignment ident fi = do
             let release = at 6 >>= parseExcelDate
             let point = at 7 >>= readMaybe
             let problems = at 8 >>= readMaybe
-            let desc = at 9 >>= Just . Textarea . T.pack
+            let desc = at 9 >>= Just . T.pack
             let pass = at 10 >>= Just . T.pack
             let hidden = at 11 >>= \s -> Just (s == "true" || s == "True" || s == "1")
             let limit = at 12 >>= readMaybe
