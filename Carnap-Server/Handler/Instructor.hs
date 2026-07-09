@@ -1267,11 +1267,11 @@ handleBulkAssignment ident fi = do
         length s `seq` return s
     liftIO $ removeFile tmpPath
     
-    let lns = lines content
+    let lns = map (T.unpack . decodeUtf8) (lines content)
     let rows = drop 1 lns
     let parsedRows = map parseCSVLine rows
     
-    Entity _ user <- requireAuth
+    Entity uid user <- requireAuth
     iid <- instructorIdByIdent (userIdent user)
              >>= maybe (setMessage "failed to retrieve instructor" >> notFound) pure
 
@@ -1309,7 +1309,7 @@ handleBulkAssignment ident fi = do
                                              else runDB $ getBy (UniqueCoInstructor iid cid)
                                 let Just tz = tzByName . courseTimeZone $ theclass
                                 
-                                mDoc <- runDB $ selectFirst [DocumentFilename ==. T.pack fn, DocumentCreator ==. entityKey user] []
+                                mDoc <- runDB $ selectFirst [DocumentFilename ==. T.pack fn, DocumentCreator ==. uid] []
                                 case mDoc of
                                     Just (Entity docId doc) -> do
                                         let thename = documentFilename doc
