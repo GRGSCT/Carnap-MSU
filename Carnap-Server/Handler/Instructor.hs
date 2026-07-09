@@ -1267,7 +1267,7 @@ handleBulkAssignment ident fi = do
         length s `seq` return s
     liftIO $ removeFile tmpPath
     
-    let lns = map (T.unpack . decodeUtf8) (lines content)
+    let lns = map T.unpack (T.lines (decodeUtf8 content))
     let rows = drop 1 lns
     let parsedRows = map parseCSVLine rows
     
