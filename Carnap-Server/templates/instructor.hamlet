@@ -69,7 +69,8 @@
                     <hr style="margin-left:-20px;margin-right:-20px">
                     <h2> Bulk Assign Documents
                     <p>
-                        Upload a CSV file to assign multiple documents. The header row should include the following columns: File to Assign, Assignment Title, Assign to (Course), Due Date, Due Time, Visible From Date, Visible From Time, Visible To Date, Visible To Time, Release Grades After Date, Release Grades After Time, Point Value, Number of Problems, Description, Password, Hidden, Limit. Dates can be formatted as YYYY-MM-DD or M/D/YYYY. Times can be formatted as HH:MM (24-hour) or h:MM AM/PM. If a date is provided without a time, the time defaults to 11:59 PM. Optional fields can be left blank.
+                        Upload a CSV file to assign multiple documents. Format dates as YYYY-MM-DD or M/D/YYYY. Format times as HH:MM (24 hour) or H:MM AM/PM. Optional fields can be left blank.
+                        <a href=@{StaticR csv_bulk_assign_template_csv}>Download template CSV
                     <form method=post action="#assignFromDocument" enctype=#{enctypeBulkAssignment}>
                         ^{bulkAssignmentWidget}
                         <div.form-group>
