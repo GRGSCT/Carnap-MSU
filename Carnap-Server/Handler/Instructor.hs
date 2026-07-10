@@ -254,7 +254,9 @@ postInstructorR ident = do
                case instructorAssignPassword postedAssignment of
                    Nothing | instructorAssignHidden postedAssignment == Just True || instructorAssignTimeLimit postedAssignment /= Nothing
                            -> setMessage "Hidden and time-limited assignments must be password protected"
-                   _ -> do success <- runDB $ insertUnique $ AssignmentMetadata
+                   _ -> do maxOrd <- runDB $ selectFirst [AssignmentMetadataCourse ==. cid] [Desc AssignmentMetadataOrdering]
+                           let nextOrd = maybe 0 ((+1) . assignmentMetadataOrdering . entityVal) maxOrd
+                           success <- runDB $ insertUnique $ AssignmentMetadata
                                                 { assignmentMetadataDocument = docId
                                                 , assignmentMetadataTitle = maybe thename id (instructorAssignTitle postedAssignment)
                                                 , assignmentMetadataDescription = info
@@ -276,7 +278,7 @@ postInstructorR ident = do
                                                             (Just txt, Just True, Just mins) -> Just (HiddenViaPasswordExpiring txt mins)
                                                             (Just txt, _, Just mins) -> Just (ViaPasswordExpiring txt mins)
                                                             (Just txt, _, _) -> Just (ViaPassword txt)
-                                                , assignmentMetadataOrdering = 0
+                                                , assignmentMetadataOrdering = nextOrd
                                                 }
                            case success of Just _ -> return ()
                                            Nothing -> setMessage "This file has already been assigned for this course"
@@ -1292,7 +1294,7 @@ handleBulkAssignment ident fi = do
             let problems = at 12 >>= readMaybe
             let desc = at 13 >>= Just . T.pack
             let pass = at 14 >>= Just . T.pack
-            let hidden = at 15 >>= \s -> Just (s == "true" || s == "True" || s == "1")
+            let hidden = at 15 >>= \s -> Just (s `elem` ["true", "True", "TRUE", "1", "yes", "Yes", "YES"])
             let limit = at 16 >>= readMaybe
             
             case (file, courseName) of
@@ -1322,6 +1324,9 @@ handleBulkAssignment ident fi = do
                                                 (Just txt, _, Just mins) -> Just (ViaPasswordExpiring txt mins)
                                                 (Just txt, _, _) -> Just (ViaPassword txt)
                                                 
+                                        maxOrd <- runDB $ selectFirst [AssignmentMetadataCourse ==. cid] [Desc AssignmentMetadataOrdering]
+                                        let nextOrd = maybe 0 ((+1) . assignmentMetadataOrdering . entityVal) maxOrd
+                                        
                                         success <- runDB $ insertUnique $ AssignmentMetadata
                                             { assignmentMetadataDocument = docId
                                             , assignmentMetadataTitle = theTitle
@@ -1336,7 +1341,7 @@ handleBulkAssignment ident fi = do
                                             , assignmentMetadataDate = currentTime
                                             , assignmentMetadataCourse = cid
                                             , assignmentMetadataAvailability = maccess
-                                            , assignmentMetadataOrdering = 0
+                                            , assignmentMetadataOrdering = nextOrd
                                             }
                                         case success of
                                             Just _ -> return (Just (fn, cn, "Success"))
