@@ -57,5 +57,11 @@
     <footer>
         An
         <a#opentower href="https://open-tower.com"> Open Tower
-        \ project. #{appCopyright $ appSettings master}.
+        \ project. Copyright 2015-#
+        <span#copyright-year>
+        \ G. Leach-Krouse, J. Ehrlich, G. Johnson
+        \ &lt;#
+        <a href="mailto:gregory.johnson@msstate.edu">gregory.johnson@msstate.edu
+        &gt;.
         <br> _{MsgLayoutMunson}
+        <script>document.getElementById('copyright-year').textContent=new Date().getFullYear();
