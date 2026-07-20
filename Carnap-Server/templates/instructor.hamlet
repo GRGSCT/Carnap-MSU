@@ -4,7 +4,6 @@
     ^{updateAccommodationModal updateAccommodationWidget enctypeUpdateAccommodation}
     ^{updateOldCourseModal updateCourseWidget enctypeUpdateCourse}
     <h1> Instructor Page for #{firstname} #{lastname}
-    <p> This is a page where you can manage students, classes and assignments.
     $if (not $ null activeClasses)
         <div.card.mb-3>
             <div.card-header>
@@ -69,8 +68,9 @@
                     <hr style="margin-left:-20px;margin-right:-20px">
                     <h2> Bulk Assign Documents
                     <p>
-                        Upload a CSV file to assign multiple documents. Format dates as YYYY-MM-DD or M/D/YYYY. Format times as HH:MM (24 hour) or H:MM AM/PM. Optional fields can be left blank.
-                        <a href=@{StaticR csv_bulk_assign_template_csv}>Download template CSV
+                        You can upload a CSV file to assign multiple documents at the same time. Use the
+                        <a href=@{StaticR csv_bulk_assign_template_csv}>CSV template
+                        . Format dates as YYYY-MM-DD or M/D/YYYY. Use HH:MM (24 hour) or H:MM AM/PM for the time. Optional fields can be left blank.
                     <form method=post action="#assignFromDocument" enctype=#{enctypeBulkAssignment}>
                         ^{bulkAssignmentWidget}
                         <div.form-group>
