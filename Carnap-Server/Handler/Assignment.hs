@@ -118,7 +118,7 @@ returnAssignment coursetitle filename (Entity key val) path = do
                                      (Just min, Just tok) -> toWidgetHead [julius|
                                                                              var availability_minutes = #{rawJS $ show (testTime min)};
                                                                              var token_time = #{rawJS $ show $ creation tok};
-                                                                           |]
+                                                                           |] >> addScript (StaticR js_timer_js)
                                      (_,_) -> return ()
 
                                  addDocScripts
