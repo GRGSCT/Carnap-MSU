@@ -43,7 +43,8 @@ putInstructorR ident = do
                  let cid = assignmentMetadataCourse val
                  checkCourseOwnership ident cid
                  runDB $ do course <- get cid >>= maybe (sendStatusJSON notFound404 ("Could not find course" :: Text)) pure
-                            let (Just tz) = tzByName . courseTimeZone $ course
+                            tz <- maybe (sendStatusJSON badRequest400 ("Unrecognized course timezone" :: Text)) pure
+                                  $ tzByName (courseTimeZone course)
                             let maccess = case ( instructorAssignUpdatePassword theUpdate
                                                , instructorAssignUpdateHidden theUpdate
                                                , instructorAssignUpdateTimeLimit theUpdate
@@ -68,8 +69,9 @@ putInstructorR ident = do
                         return . readMaybe . T.unpack $ idstring
                  checkCourseOwnership ident cid
                  runDB $ do course <- get cid >>= maybe (sendStatusJSON badRequest400 ("could not find course" :: Text)) pure
-                            let Just tz = tzByName . courseTimeZone $ course
-                                unlocalize day = localTimeToUTCTZ tz (LocalTime day (TimeOfDay 23 59 59))
+                            tz <- maybe (sendStatusJSON badRequest400 ("Unrecognized course timezone" :: Text)) pure
+                                  $ tzByName (courseTimeZone course)
+                            let unlocalize day = localTimeToUTCTZ tz (LocalTime day (TimeOfDay 23 59 59))
                             mnewLtiId <- case mLtiId of
                                              Nothing -> pure Nothing
                                              Just id -> maybe (sendStatusJSON badRequest400 ("could not read LTI key" :: Text)) pure 
@@ -245,8 +247,9 @@ postInstructorR ident = do
                mciid <- if courseInstructor theclass == iid
                             then return Nothing
                             else runDB $ getBy (UniqueCoInstructor iid cid)
-               let Just tz = tzByName . courseTimeZone $ theclass
-                   info = unTextarea <$> instructorAssignDescription postedAssignment
+               tz <- maybe (setMessage "Unrecognized course timezone" >> notFound) pure
+                     $ tzByName (courseTimeZone theclass)
+               let info = unTextarea <$> instructorAssignDescription postedAssignment
                    theassigner = mciid
                    thename = documentFilename theDoc
                currentTime <- liftIO getCurrentTime
@@ -293,7 +296,7 @@ postInstructorR ident = do
             do musr <- runDB $ getBy $ UniqueUser ident
                let fn = fileName file
                    info = unTextarea <$> docdesc
-                   Just uid = musr -- FIXME: catch Nothing here
+               uid <- maybe (sendStatusJSON notFound404 ("Couldn't find user" :: Text)) pure musr
                if isInvalidFilename fn then invalidArgs ["Invalid filename:" ++ fn] else return ()
                success <- runDB $ insertUnique $ Document
                                         { documentFilename = fn
@@ -338,8 +341,9 @@ postInstructorR ident = do
         FormSuccess (Entity cid theclass, theassignment, duedate, mduetime) -> do
             checkCourseOwnershipHTML ident cid
             runDB $ do
-                let Just tz = tzByName . courseTimeZone $ theclass
-                    localdue = maybe (LocalTime duedate $ TimeOfDay 23 59 59) (LocalTime duedate) mduetime
+                tz <- maybe (sendStatusJSON badRequest400 ("Unrecognized course timezone" :: Text)) pure
+                      $ tzByName (courseTimeZone theclass)
+                let localdue = maybe (LocalTime duedate $ TimeOfDay 23 59 59) (LocalTime duedate) mduetime
                     due = localTimeToUTCTZ tz localdue
                 case readAssignmentTable <$> courseTextbookProblems theclass of
                     Just assign -> update cid [CourseTextbookProblems =. (Just $ BookAssignmentTable $ Data.IntMap.insert theassignment due assign)]
@@ -1309,7 +1313,8 @@ handleBulkAssignment ident fi = do
                                 mciid <- if courseInstructor theclass == iid
                                              then return Nothing
                                              else runDB $ getBy (UniqueCoInstructor iid cid)
-                                let Just tz = tzByName . courseTimeZone $ theclass
+                                tz <- maybe (sendStatusJSON badRequest400 ("Unrecognized course timezone" :: Text)) pure
+                                             $ tzByName (courseTimeZone theclass)
                                 
                                 mDoc <- runDB $ selectFirst [DocumentFilename ==. T.pack fn, DocumentCreator ==. uid] []
                                 case mDoc of
