@@ -21,9 +21,10 @@ postAPIInstructorAssignmentsR ident coursetitle = do
              time <- liftIO $ getCurrentTime
              val <- requireCheckJsonBody :: Handler Value
              val' <- case val of
-                         Object hm ->
-                             let Just tz = tzByName . courseTimeZone $ course
-                                 hm' = HM.insert "date" (toJSON time)
+                         Object hm -> do
+                             tz <- maybe (sendStatusJSON badRequest400 ("Unrecognized course timezone" :: Text)) pure
+                                       $ tzByName (courseTimeZone course)
+                             let hm' = HM.insert "date" (toJSON time)
                                      . HM.insert "ordering" (toJSON (0 :: Int))
                                      . HM.insert "assigner" (toJSON $ maybe Nothing (Just . entityKey) mcoInst)
                                      . HM.insert "course" (toJSON cid)
@@ -31,7 +32,7 @@ postAPIInstructorAssignmentsR ident coursetitle = do
                                      . HM.adjust (handleDate tz) "visibleTill"
                                      . HM.adjust (handleDate tz) "visibleFrom"
                                      . HM.adjust (handleDate tz) "gradeRelease" $ hm
-                             in return $ Object hm'
+                             return $ Object hm'
                          _ -> sendStatusJSON badRequest400 ("Improper JSON" :: Text)
              case fromJSON val' :: Result AssignmentMetadata of
                    Error e -> (sendStatusJSON badRequest400 e)
@@ -105,7 +106,8 @@ patchAPIInstructorAssignmentR :: Text -> Text -> AssignmentMetadataId -> Handler
 patchAPIInstructorAssignmentR ident coursetitle asid = do
              Entity cid course <- canAccessClass ident coursetitle
              patch <- requireCheckJsonBody :: Handler AssignmentPatch
-             let Just tz = tzByName . courseTimeZone $ course
+             tz <- maybe (sendStatusJSON badRequest400 ("Unrecognized course timezone" :: Text)) pure
+                       $ tzByName (courseTimeZone course)
              asgn' <- runDB $ do _ <- assignmentPartOf asid cid
                                  updateGet asid $ concat
                                     [ maybeUpdateTime tz AssignmentMetadataGradeRelease (patchGradeRelease patch)
