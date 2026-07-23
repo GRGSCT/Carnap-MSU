@@ -154,7 +154,7 @@ instance Yesod App where
          APIInstructorStudentAssignmentTokensR ident _ _ -> requireAPIKeyFor ident
          APIInstructorStudentAssignmentTokenR ident _ _ _ -> requireAPIKeyFor ident
          APIInstructorAssignmentsR ident _ -> requireAPIKeyFor ident
-         APIInstructorAssignmentsReorderR ident _ -> requireAPIKeyFor ident
+         APIInstructorAssignmentsReorderR ident _ -> instructor ident
          APIInstructorAssignmentR ident _ _ -> requireAPIKeyFor ident
          APIInstructorAssignmentSubmissionsR ident _ _ -> requireAPIKeyFor ident
          APIInstructorAssignmentSubmissionsByStudentR ident _ _ _ -> requireAPIKeyFor ident
