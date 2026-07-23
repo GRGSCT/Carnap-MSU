@@ -38,8 +38,10 @@ getAPIInstructorStudentExtensionsR ident coursetitle udid = do
 postAPIInstructorStudentExtensionsR :: Text -> Text -> UserDataId -> Handler Value
 postAPIInstructorStudentExtensionsR ident coursetitle udid = do
              Entity cid course <- canAccessClass ident coursetitle
+             tz <- maybe (sendStatusJSON badRequest400 ("Unrecognized course timezone" :: Text)) pure
+                       $ tzByName (courseTimeZone course)
              val <- requireCheckJsonBody :: Handler Value
-             case parse (unpackPost course) val of
+             case parse (unpackPost tz) val of
                  Error e -> sendStatusJSON badRequest400 e
                  Success (aid,until) -> do
                      Entity exid _ <- runDB $ do
@@ -50,21 +52,16 @@ postAPIInstructorStudentExtensionsR ident coursetitle udid = do
                                   [ExtensionUntil =. until]
                      returnJson exid
 
-    where unpackPost course = withObject "post JSON" $ \o -> do
-            theDate <- o .: "until" <|> dateTimeFromString o course <|> dateFromString o course
+    where unpackPost tz = withObject "post JSON" $ \o -> do
+            theDate <- o .: "until" <|> dateTimeFromString tz o <|> dateFromString tz o
             (,) <$> o .: "onAssignment" <*> return (theDate :: UTCTime)
-          dateFromString o course = do
+          dateFromString tz o = do
               dateString <- o .: "until"
               day <- parseTimeM True defaultTimeLocale "%Y-%m-%d" dateString
-              tz <- maybe (fail "Unrecognized course timezone") pure
-                         $ tzByName (courseTimeZone course)
-              let localTime = LocalTime day (TimeOfDay 23 59 59)
-              return $ localTimeToUTCTZ tz localTime
-          dateTimeFromString o course = do
+              return $ localTimeToUTCTZ tz (LocalTime day (TimeOfDay 23 59 59))
+          dateTimeFromString tz o = do
               dateString <- o .: "until"
               localTime <- parseTimeM True defaultTimeLocale "%Y-%m-%d %R" dateString
-              tz <- maybe (fail "Unrecognized course timezone") pure
-                         $ tzByName (courseTimeZone course)
               return $ localTimeToUTCTZ tz localTime
 
 getAPIInstructorStudentAccommodationsR :: Text -> Text -> UserDataId -> Handler Value
