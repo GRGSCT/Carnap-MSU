@@ -56,13 +56,15 @@ postAPIInstructorStudentExtensionsR ident coursetitle udid = do
           dateFromString o course = do
               dateString <- o .: "until"
               day <- parseTimeM True defaultTimeLocale "%Y-%m-%d" dateString
-              let Just tz = tzByName . courseTimeZone $ course
-                  localTime = LocalTime day (TimeOfDay 23 59 59)
+              tz <- maybe (fail "Unrecognized course timezone") pure
+                         $ tzByName (courseTimeZone course)
+              let localTime = LocalTime day (TimeOfDay 23 59 59)
               return $ localTimeToUTCTZ tz localTime
           dateTimeFromString o course = do
               dateString <- o .: "until"
               localTime <- parseTimeM True defaultTimeLocale "%Y-%m-%d %R" dateString
-              let Just tz = tzByName . courseTimeZone $ course
+              tz <- maybe (fail "Unrecognized course timezone") pure
+                         $ tzByName (courseTimeZone course)
               return $ localTimeToUTCTZ tz localTime
 
 getAPIInstructorStudentAccommodationsR :: Text -> Text -> UserDataId -> Handler Value
