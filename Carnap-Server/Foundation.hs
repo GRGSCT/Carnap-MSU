@@ -290,7 +290,7 @@ instance Yesod App where
                      <pre>#{e}
                      <p>
                         \ If you have time, please consider submitting an error report to
-                        \ <a href="mailto:its@msstate.edu?subject=Carnap server error">its@msstate.edu</a>,
+                        \ <a href="mailto:gregory.johnson@msstate.edu?subject=Carnap server error">gregory.johnson@msstate.edu</a>,
                         \ containing the error message above and
                         \ a description of how the error occurred including,
                         \ if possible, how to reproduce it.
