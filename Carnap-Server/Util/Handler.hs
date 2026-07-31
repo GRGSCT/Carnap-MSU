@@ -79,8 +79,7 @@ addDocScripts = do
 
 -- * Pandoc
 allFilters :: Block -> Block
-allFilters = makeTreeDeduction
-             . makeCounterModelers
+allFilters = makeCounterModelers
              . makeProofChecker
              . makeQualitativeProblems
              . makeSequent
