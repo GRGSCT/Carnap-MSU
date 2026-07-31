@@ -220,6 +220,8 @@ udByInstructorId
     -> HandlerFor site (Entity UserData)
 udByInstructorId id = do l <- runDB $ selectList [UserDataInstructorId ==. Just id] []
                          case l of [ud] -> return ud
-                                   [] -> error $ "couldn't find any user data for instructor " ++ show id
-                                   _ -> error $ "Multiple user data for instructor " ++ show id
+                                   [] -> sendStatusJSON internalServerError500
+                                             ("Data inconsistency: no user data found for instructor " <> pack (show id) :: Text)
+                                   _  -> sendStatusJSON internalServerError500
+                                             ("Data inconsistency: multiple user data rows for instructor " <> pack (show id) :: Text)
 
