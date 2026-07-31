@@ -13,6 +13,7 @@ import           Data.Time.Zones.DB
 import           Import
 import           System.Directory      (doesFileExist, removeFile)
 import           System.FilePath       (takeExtension)
+import           System.IO             (hClose, openTempFile)
 import           Text.Blaze.Html       (Markup, toMarkup)
 import           Text.Read             (readMaybe)
 import           Util.API
@@ -1266,9 +1267,10 @@ parseCSVLine s = case parseField s of
 handleBulkAssignment :: Text -> FileInfo -> Handler ()
 handleBulkAssignment ident fi = do
     datadir <- appDataRoot <$> (appSettings <$> getYesod)
-    let tmpPath = datadir </> "bulk_assign.tmp"
-    liftIO $ fileMove fi tmpPath
+    (tmpPath, tmpHandle) <- liftIO $ openTempFile datadir "bulk_assign.tmp"
     content <- liftIO $ do
+        hClose tmpHandle
+        fileMove fi tmpPath
         s <- readFile tmpPath
         length s `seq` return s
     liftIO $ removeFile tmpPath
