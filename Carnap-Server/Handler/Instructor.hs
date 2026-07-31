@@ -13,7 +13,7 @@ import           Data.Time.Zones.DB
 import           Import
 import           System.Directory      (doesFileExist, removeFile)
 import           System.FilePath       (takeExtension)
-import           System.IO             (hClose, openTempFile)
+import           System.IO             (openTempFile)
 import           Text.Blaze.Html       (Markup, toMarkup)
 import           Text.Read             (readMaybe)
 import           Util.API
