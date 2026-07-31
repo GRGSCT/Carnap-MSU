@@ -290,9 +290,9 @@ instance Yesod App where
                      <pre>#{e}
                      <p>
                         \ If you have time, please consider submitting an error report to
-                        \ <a href="mailto:gleachkr@ksu.edu?subject=server error">gleachkr@ksu.edu</a>,
+                        \ <a href="mailto:its@msstate.edu?subject=Carnap server error">its@msstate.edu</a>,
                         \ containing the error message above and
-                        \ a description of how the error occured including,
+                        \ a description of how the error occurred including,
                         \ if possible, how to reproduce it.
                 |]
             provideRep $ return $ object ["message" .= ("Internal Server Error" :: Text), "error" .= e]
