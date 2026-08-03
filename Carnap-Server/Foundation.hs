@@ -286,16 +286,17 @@ instance Yesod App where
                 [whamlet|
                     <div.container>
                      <h1>Internal Server Error
-                     <p>Something has gone wrong on the server. The error is:
-                     <pre>#{e}
+                     <p>
+                        \ An unexpected error occurred on the server.
+                        \ The error has been recorded in the server log.
                      <p>
                         \ If you have time, please consider submitting an error report to
                         \ <a href="mailto:gregory.johnson@msstate.edu?subject=Carnap server error">gregory.johnson@msstate.edu</a>,
-                        \ containing the error message above and
-                        \ a description of how the error occurred including,
+                        \ including the time at which this error occurred and
+                        \ a description of what you were doing, including,
                         \ if possible, how to reproduce it.
                 |]
-            provideRep $ return $ object ["message" .= ("Internal Server Error" :: Text), "error" .= e]
+            provideRep $ return $ object ["message" .= ("Internal Server Error" :: Text)]
     errorHandler NotFound = selectRep $ do
         provideRep $ defaultLayout $ do
             r <- waiRequest
