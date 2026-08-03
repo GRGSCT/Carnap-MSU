@@ -73,3 +73,9 @@ div#message code, .wrapped
 a#opentower
     font-family:street;
     color:#222;
+
+/* Override Bootstrap link color for better contrast (WCAG AA) */
+a
+    color:#0266bc
+a:hover, a:focus
+    color:#0266bc
