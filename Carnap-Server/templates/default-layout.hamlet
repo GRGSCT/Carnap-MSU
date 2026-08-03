@@ -35,7 +35,7 @@
                                         <a href=@{DocumentsR}>
                                             _{MsgLayoutSharedDocuments}
                                     <li>
-                                        <a href="@{ServeR "doc" ["index.md"]}">
+                                        <a href="https://carnap.io/srv/doc/index.md">
                                             _{MsgLayoutSharedDocumentation}
                                 <li>
                                     <a href=@{AuthR LogoutR}>
