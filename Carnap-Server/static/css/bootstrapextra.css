@@ -66,3 +66,11 @@ h5:hover > .anchor::before,
 h6:hover > .anchor::before {
     opacity: 0.6;
 }
+
+/* Override Bootstrap's default link color (#0275d8) with a slightly darker
+   value that meets WCAG AA contrast against a white background. */
+a,
+a:hover,
+a:focus {
+    color: #0266bc;
+}
