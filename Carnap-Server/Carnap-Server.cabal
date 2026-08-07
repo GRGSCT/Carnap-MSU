@@ -121,6 +121,8 @@ library
                  , wai-extra                     >= 3.0        && < 3.2
                  , yaml                          >= 0.8        && < 0.12
                  , http-conduit                  >= 2.3        && < 2.4
+                 , http-client
+                 , http-client-tls
                  , directory                     >= 1.1        && < 1.4
                  , warp                          >= 3.0        && < 3.4
                  , data-default
