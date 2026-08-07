@@ -46,6 +46,8 @@ import           System.Clock
 import           System.Log.FastLogger                 (defaultBufSize,
                                                         newStdoutLoggerSet,
                                                         toLogStr)
+import qualified Network.HTTP.Client                   as HC
+import qualified Network.HTTP.Client.TLS               as HCTLS
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
@@ -84,7 +86,16 @@ makeFoundation :: AppSettings -> IO App
 makeFoundation appSettings = do
     -- Some basic initializations: HTTP connection manager, logger, and static
     -- subsite.
-    appHttpManager <- newManager
+    let managerSettings = HCTLS.tlsManagerSettings
+            { HC.managerModifyRequest = \req -> do
+                let headers = HC.requestHeaders req
+                    hasUserAgent = any (\(h, _) -> h == "User-Agent") headers
+                    headers' = if hasUserAgent 
+                               then headers 
+                               else ("User-Agent", "Carnap-MSU/1.0") : headers
+                return req { HC.requestHeaders = headers' }
+            }
+    appHttpManager <- HC.newManager managerSettings
     appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
     appStatic <-
         (if appMutableStatic appSettings then staticDevel else static)
