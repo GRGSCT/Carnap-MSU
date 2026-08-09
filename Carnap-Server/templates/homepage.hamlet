@@ -8,7 +8,4 @@
 
     <p> _{MsgHomepageTextPrefix1} #
         <a href="https://haskell.org">_{MsgHomepageTextLink1}
-        \ _{MsgHomepageTextSuffix1} #
-        \ _{MsgHomepageTextPrefix2} #
-        <a href="@{InfoR}#who">_{MsgHomepageTextLink2}
-        \ _{MsgHomepageTextSuffix2}
+        \ _{MsgHomepageTextSuffix1}
