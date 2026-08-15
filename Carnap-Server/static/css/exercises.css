@@ -143,6 +143,8 @@
     border:1px solid #A9B7C0;
     outline:none;
     margin:0px;
+    font-family: monospace;
+    font-variant-ligatures: none;
 }
 
 [data-carnap-type="translate"] > input { 
