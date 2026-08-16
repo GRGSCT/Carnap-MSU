@@ -1,7 +1,6 @@
 <div.jumbotron.jumbotron-fluid>
     <div.container>
         <h1.display-3>_{MsgHomepageWelcome}
-        <p.lead>_{MsgHomepageSubtitle}
 
 
 <div#main.container>
