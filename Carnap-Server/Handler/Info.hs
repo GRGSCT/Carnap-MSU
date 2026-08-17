@@ -1,20 +1,13 @@
 module Handler.Info where
 
 import           Import
-import           Settings.Runtime
 import           Text.Shakespeare.Text
-import           Util.Handler          (addDocScripts)
 
 getInfoR :: Handler Html
 getInfoR = do
-    instanceAdmin <- runDB getInstanceAdminEmail
-
     defaultLayout $ do
-        addDocScripts
         setTitle "Carnap - About"
-
         $(widgetFile "infopage")
-        -- TODO : split out the stuff specifically relating to exercises
 
 -- TODO remove submit option on these.
 checker :: Int -> Text -> Text -> Text -> Text -> Text -> HtmlUrl url
