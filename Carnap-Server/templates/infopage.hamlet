@@ -14,7 +14,7 @@
 
     <p>
         Carnap is a free and open-source Haskell framework for creating and exploring formal languages, logics, and semantics. Carnap: Mississippi State is a version of #
-        <a href="https://carnap.io/about">carnap.io
+        <a href="https://carnap.io/about" target="_blank">carnap.io
         \. The source files are in this #
-        <a href="https://github.com/GRGSCT/Carnap-MSU">GitHub repository
+        <a href="https://github.com/GRGSCT/Carnap-MSU" target="_blank">GitHub repository
         \.
