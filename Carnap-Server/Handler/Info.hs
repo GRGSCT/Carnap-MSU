@@ -6,7 +6,7 @@ import           Text.Shakespeare.Text
 getInfoR :: Handler Html
 getInfoR = do
     defaultLayout $ do
-        setTitle "Carnap - About"
+        setTitle "Carnap: MSU - About"
         $(widgetFile "infopage")
 
 -- TODO remove submit option on these.
