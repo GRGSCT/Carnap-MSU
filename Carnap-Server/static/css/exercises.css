@@ -32,18 +32,18 @@
 }
 
 .buttonWrapper button:nth-child(1) {
+    background: #660000;
+    border:1px solid #660000;
+}
+
+.buttonWrapper button:nth-child(2) {
     background: #557386;
     border:1px solid #557386;
 }
 
-.buttonWrapper button:nth-child(2) {
-    background: #7B909E;
-    border:1px solid #7B909E;
-}
-
 .buttonWrapper button:nth-child(3) {
-    background: #A9B7C0;
-    border:1px solid #A9B7C0;
+    background: #6e6e6e;
+    border:1px solid #6e6e6e;
 }
 
 .buttonWrapper button:nth-child(4) {
