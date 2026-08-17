@@ -16,7 +16,7 @@ HomepageTextSuffix2: around the world.
 # HomepageTextLink5: get in touch!
 
 # templates/infopage.hamlet
-InfopageAboutCarnap: About Carnap
+InfopageAboutCarnap: About Carnap: Mississippi State
 InfopageWhatIs: What is Carnap?
 InfopageWhatFor: What's Carnap for?
 InfopageHowToUse: How can I use Carnap?
