@@ -4,13 +4,10 @@
 
 <div#main.container>
 
-    <p> Carnap is named for the philosopher, Rudolf Carnap (1891 – 1970).
-
-    <blockquote.blockquote>
-        <p> _{MsgInfopageCarnapQuote1}
-        <p> _{MsgInfopageCarnapQuote2}
-        <footer.blockquote-footer>Rudolf Carnap,
-            <cite title="Empiricism Semantics and Ontology"> _{MsgInfopageCarnapQuoteSource}
+    <p>
+        Carnap is named for the philosopher, #
+        <a href="https://plato.stanford.edu/entries/carnap/" target="_blank">Rudolf Carnap
+        \  (1891 – 1970).
 
     <p>
         Carnap is a free and open-source Haskell framework for creating and exploring formal languages, logics, and semantics. Carnap: Mississippi State is a version of #
