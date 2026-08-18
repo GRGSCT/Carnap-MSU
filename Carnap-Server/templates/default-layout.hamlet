@@ -7,16 +7,6 @@
                 <li>
                     <a href=@{InfoR}>
                         _{MsgLayoutAbout}
-                <li>
-                    $maybe doc <- entityVal <$> mdoc
-                        $maybe course <- entityVal <$> mcourse
-                            <a href=@{CourseAssignmentR (courseTitle course) (documentFilename doc)}>
-                                _{MsgLayoutBook}
-                        $nothing
-                            <a href=@{BookR}>
-                                _{MsgLayoutBook}
-                    $nothing
-                        <a href=@{BookR}>_{MsgLayoutBook}
                 $maybe (Entity _ user) <- authmaybe
                     <li.dropdown>
                             $maybe Entity _ userdata <- mud
