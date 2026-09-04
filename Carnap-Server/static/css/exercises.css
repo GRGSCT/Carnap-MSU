@@ -69,7 +69,7 @@
 {
     animation: buttonHover .2s 1;
     background:white;
-    color:#A9B7C0;
+    color:black;
     border:1px solid #A9B7C0;
 }
 
@@ -77,7 +77,7 @@
 .buttonWrapper button[data-carnap-exercise-status="submitted"] svg
 {
     animation: buttonHover .2s 1;
-    fill:#A9B7C0;
+    fill:black;
 }
 
 .buttonWrapper button:hover svg .filler {
@@ -88,8 +88,8 @@
 
 .buttonWrapper button:active svg .filler,
 .buttonWrapper button[data-carnap-exercise-status="submitted"] svg .filler {
-    fill:#A9B7C0;
-    stroke:#A9B7C0;
+    fill:black;
+    stroke:black;
 }
 
 @keyframes buttonHover {
@@ -99,7 +99,7 @@
     }
     100% {
         background:white;
-        color:#A9B7C0;
+        color:black;
     }
 }
 
