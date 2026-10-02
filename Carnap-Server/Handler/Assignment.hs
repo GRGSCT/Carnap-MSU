@@ -17,8 +17,22 @@ import           Util.Database
 import           Util.Handler
 
 getCourseAssignmentR :: Text -> Text -> Handler Html
-getCourseAssignmentR coursetitle filename = getAssignmentAndPathByCourse coursetitle filename
-                                            >>= uncurry (returnAssignment coursetitle filename)
+getCourseAssignmentR coursetitle filename = do
+    mAutoKey <- lookupGetParam "key"
+    case mAutoKey of
+        Nothing      -> proceed
+        Just autoKey -> do
+            muid           <- maybeAuthId
+            Entity aid val <- getAssignmentByCourse coursetitle filename
+            case (muid, assignmentMetadataAvailability val) of
+                (Just uid, Just restrict) | autoKey == availabilityPassword restrict -> do
+                    currentTime <- liftIO getCurrentTime
+                    _           <- runDB $ insertUnique $ AssignmentAccessToken currentTime aid uid
+                    redirect (CourseAssignmentR coursetitle filename)
+                _ -> proceed
+  where
+    proceed = getAssignmentAndPathByCourse coursetitle filename
+              >>= uncurry (returnAssignment coursetitle filename)
 
 putCourseAssignmentStateR :: Text -> Text -> Handler Value
 putCourseAssignmentStateR _coursetitle _filename = do
