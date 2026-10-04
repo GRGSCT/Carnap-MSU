@@ -327,13 +327,15 @@ instance Yesod App where
                 <div.container>
                     <h1>Authentication Required
                     <p> The page you requested requires that you log in to Carnap first.
-                    <ol>
-                        <li>If you are a student who logs in via your course website
-                            \ (in Canvas, Moodle, Brightspace, or some other learning management system),
-                            \ use the Carnap login link provided by your instructor on your course website.
-                        <li>If your instructor has asked you to log in using Google, click #
-                            <a href=@{AuthR LoginR}>here
-                            \ to authenticate with Google.
+                    $# Original login options, disabled for MSU (restore by removing the leading "$# "):
+                    $# <ol>
+                    $#     <li>If you are a student who logs in via your course website
+                    $#         \ (in Canvas, Moodle, Brightspace, or some other learning management system),
+                    $#         \ use the Carnap login link provided by your instructor on your course website.
+                    $#     <li>If your instructor has asked you to log in using Google, click #
+                    $#         <a href=@{AuthR LoginR}>here
+                    $#         \ to authenticate with Google.
+                    <p>Return to Canvas and use the link provided there to access Carnap: MSU
              |]
         provideRep $
             return $ object $ ["message" .= ("Not Authenticated." :: Text)]
