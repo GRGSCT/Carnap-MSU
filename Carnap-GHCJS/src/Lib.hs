@@ -400,11 +400,51 @@ setSuccess w elt = liftIO (setAttribute elt "class" "success" >> dispatchCustom 
 
 setFailure w elt = liftIO (setAttribute elt "class" "failure" >> dispatchCustom w elt "exercise-failure")
 
-loginCheck callback serverResponse  
+loginCheck onFailure callback serverResponse  
      | serverResponse == "submitted!" = callback
-     | otherwise = alert serverResponse
+     | otherwise = onFailure serverResponse
 
 errorPopup msg = alert ("Something has gone wrong. Here's the error: " ++ msg)
+
+-- Inline (non-blocking) submission feedback. Blocking dialogs such as alert()
+-- change browser focus, which proctoring extensions (e.g. Honorlock on macOS)
+-- can react to by switching back to the assessment tab. Instead, we put the
+-- message in a span placed after the buttons in the button wrapper. The span is
+-- an aria-live region, created once and then updated, so that screen readers
+-- announce the message.
+showSubmitStatus :: Bool -> Document -> Element -> String -> IO ()
+showSubmitStatus isError w bt msg = 
+        do mpar <- getParentNode bt
+           case mpar of
+               Nothing -> fallback
+               Just par -> do existing <- getListOfElementsByClass (castToElement par) "submitStatus"
+                              msp <- case catMaybes existing of
+                                         (e:_) -> return (Just e)
+                                         [] -> do mspan <- createElement w (Just "span")
+                                                  case mspan of
+                                                      Nothing -> return Nothing
+                                                      Just sp -> do setAttribute sp "role" "status"
+                                                                    setAttribute sp "aria-live" "polite"
+                                                                    setAttribute sp "aria-atomic" "true"
+                                                                    appendChild par (Just sp)
+                                                                    return (Just sp)
+                              case msp of
+                                  Nothing -> fallback
+                                  Just sp -> do setAttribute sp "class" ("submitStatus " ++ (if isError then "submitError" else "submitSuccess"))
+                                                setInnerHTML sp (Just (escapeHtml msg))
+    where escapeHtml = concatMap esc
+          esc '<' = "&lt;"
+          esc '>' = "&gt;"
+          esc '&' = "&amp;"
+          esc c = [c]
+          --only errors need a fallback; success is also shown by the button's styling
+          fallback = if isError then alert msg else return ()
+
+showSubmitError :: Document -> Element -> String -> IO ()
+showSubmitError = showSubmitStatus True
+
+showSubmitSuccess :: Document -> Element -> String -> IO ()
+showSubmitSuccess = showSubmitStatus False
 
 svgButtonWith :: String -> Document -> String -> IO Element
 svgButtonWith svg w thelabel =
@@ -436,17 +476,21 @@ createButtonWrapper w o = do (Just bw) <- createElement w (Just "div")
 trySubmit w problemType opts ident problemData correct = 
              do msource <- liftIO submissionSource
                 key <- liftIO assignmentKey
+                Just t <- eventCurrentTarget
+                let bt = castToElement t
+                    inlineError = showSubmitError w bt
                 case msource of 
-                   Nothing -> message "Not able to identify problem source. Perhaps this document has not been assigned?"
-                   Just source -> do Just t <- eventCurrentTarget
+                   Nothing -> liftIO $ inlineError "Not able to identify problem source. Perhaps this document has not been assigned?"
+                   Just source -> do 
                                      liftIO $ sendJSON 
                                            (Submit problemType ident problemData source correct 
                                                     (M.lookup "points" opts >>= readMaybe) 
                                                     (M.lookup "late-credit" opts >>= readMaybe) 
                                                     key
                                            ) 
-                                           (loginCheck $ (alert $ "Submitted Exercise " ++ ident) >> setStatus w (castToElement t) Submitted)
-                                           errorPopup
+                                           --on success, the button's "submitted" status styling is the confirmation
+                                           (loginCheck inlineError (setStatus w bt Submitted >> showSubmitSuccess w bt "Submitted"))
+                                           (\msg -> inlineError ("Something has gone wrong. Here's the error: " ++ msg))
 
 ------------------
 --1.8 SVG Data  --
