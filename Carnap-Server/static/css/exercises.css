@@ -568,3 +568,21 @@ body[data-carnap-type="proofchecker"] .buttonWrapper {
     color: black;
     background: none;
 }
+
+/* inline (non-blocking) submission feedback, shown to the right of the buttons */
+.buttonWrapper .submitStatus {
+    display:inline-block;
+    margin-left:10px;
+    font-size:14px;
+    vertical-align:middle;
+}
+
+.buttonWrapper .submitStatus.submitError {
+    color:#a00000;
+    font-weight:bold;
+}
+
+.buttonWrapper .submitStatus.submitSuccess {
+    color:#1b5e20;
+    font-weight:bold;
+}
