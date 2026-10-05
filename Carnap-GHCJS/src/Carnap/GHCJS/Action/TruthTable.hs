@@ -75,16 +75,16 @@ activateTruthTables w (Just (i,o,opts)) = do
                           else do
                               bt2 <- questionButton w "Check"
                               appendChild bw (Just bt2)
-                              checkIt <- newListener $ checkTable wrap ref check
+                              checkIt <- newListener $ checkTable bt2 wrap ref check
                               addListener bt2 click checkIt False                
                           return ()
                 _ -> print "truth table was missing an option"
-          checkTable wrap ref check = liftIO $ do correct <- check
+          checkTable bt wrap ref check = liftIO $ do correct <- check
                                                   if correct 
-                                                      then do message "Success!"
+                                                      then do showSubmitSuccess w bt "Success!"
                                                               writeIORef ref True
                                                               setSuccess w wrap 
-                                                      else do message "Something's not quite right"
+                                                      else do showSubmitError w bt "Something's not quite right"
                                                               writeIORef ref False
                                                               setFailure w wrap
 
@@ -102,7 +102,7 @@ submitTruthTable w opts wrap ref check values s l =
                      --truth table as correct.
                      else if "exam" `inOpts` opts
                              then trySubmit w TruthTable opts l (TruthTableDataOpts (pack s) tabulated (M.toList opts)) correct
-                             else do message "not yet finished (do you still need to check your answer?)"
+                             else do submitMessage w "not yet finished (do you still need to check your answer?)"
                                      liftIO $ setFailure w wrap
 
 -------------------------
@@ -205,7 +205,7 @@ addCounterexample :: Document -> Map String String ->  Element -> Element
 addCounterexample w opts bw i ref atomIndicies counterexampleData
     | "nocounterexample" `inOpts` opts = return ()
     | otherwise = do bt <- exclaimButton w (buttonText (counterexampleProperty counterexampleData ))
-                     counterexample <- newListener $ liftIO $ tryCounterexample w opts ref i atomIndicies counterexampleData
+                     counterexample <- newListener $ liftIO $ tryCounterexample w opts ref bt i atomIndicies counterexampleData
                      addListener bt click counterexample False
                      appendChild bw (Just bt)
                      return ()
@@ -217,27 +217,27 @@ addCounterexample w opts bw i ref atomIndicies counterexampleData
           buttonText GeneralCounterexample = "Counterexample"
 
 
-tryCounterexample :: Document -> Map String String -> IORef Bool -> Element 
+tryCounterexample :: Document -> Map String String -> IORef Bool -> Element -> Element 
     -> [Int] -> CounterexampleData -> IO ()
-tryCounterexample w opts ref i indicies counterexampleData = 
+tryCounterexample w opts ref bt i indicies counterexampleData = 
         do Just w' <- getDefaultView w
            mrow <- prompt w' ("Give the truth values for a row that shows " ++ promptText counterexampleData) (Just "")
            case mrow of 
                Nothing -> return ()
                Just s -> 
                    case checkLength =<< (clean $ map (charToTruthValue opts) s) of
-                     Nothing -> alert w' "not a readable row"
+                     Nothing -> showSubmitError w bt "not a readable row"
                      Just l -> do let v = listToVal l
                                   let s = counterexampleTest counterexampleData v
                                   Just wrap <- getParentElement i
                                   if "exam" `inOpts` opts 
-                                      then do alert w' "Counterexample received - If you're confident that it is correct, press Submit to submit it."
+                                      then do showSubmitSuccess w bt "Counterexample received - If you're confident that it is correct, press Submit to submit it."
                                               writeIORef ref s
                                       else if s then 
-                                           do alert w' "Success!"
+                                           do showSubmitSuccess w bt "Success!"
                                               writeIORef ref True
                                               setSuccess w wrap 
-                                      else do alert w' "Something's not quite right"
+                                      else do showSubmitError w bt "Something's not quite right"
                                               writeIORef ref False
                                               setFailure w wrap 
  

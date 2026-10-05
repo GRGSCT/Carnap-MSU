@@ -164,4 +164,4 @@ submitSyn :: IsEvent e => Document -> M.Map String String -> IORef (PureForm,[(P
 submitSyn w opts ref l = do (f,forms,_,_) <- liftIO $ readIORef ref
                             case forms of 
                                [] -> do trySubmit w SyntaxCheck opts l (ProblemContent (pack $ show f)) True
-                               _  -> message "not yet finished"
+                               _  -> submitMessage w "not yet finished"

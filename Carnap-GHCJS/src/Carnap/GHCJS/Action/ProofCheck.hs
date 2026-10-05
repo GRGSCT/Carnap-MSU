@@ -277,14 +277,14 @@ submitDer w opts checker l g seq ref _ i = do
                     Feedback mseq _ <- liftIO $ getFeedback checker ded
                     setAttribute g "class" "goal"
                     case sequent checker of
-                         Nothing -> message "No goal sequent to submit"
+                         Nothing -> submitMessage w "No goal sequent to submit"
                          Just s -> case mseq of 
                              (Just s') --we allow feedback in syntax-only mode here, since in non-exam mode, you can figure out whether you were right anyway.
                                | "exam" `inOpts` opts -> trySubmit w Derivation opts l submission (s' `seqSubsetUnify` s)
                                | (s' `seqSubsetUnify` s) -> trySubmit w Derivation opts l submission True  >> setSuccess w wrap
-                               | otherwise -> message "not yet finished" >> setFailure w wrap 
+                               | otherwise -> submitMessage w "not yet finished" >> setFailure w wrap 
                              _ | "exam" `inOpts` opts -> trySubmit w Derivation opts l submission False
-                               | otherwise -> message "not yet finished" >> setFailure w wrap
+                               | otherwise -> submitMessage w "not yet finished" >> setFailure w wrap
 
 trySave :: ( Sequentable lex
            , Inference r lex sem

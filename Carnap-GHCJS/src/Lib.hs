@@ -5,7 +5,7 @@ module Lib ( genericSendJSON, sendJSON, onEnter, onKey, doOnce, dispatchCustom, 
            , listToUl, formToTree, leaves, adjustFirstMatching, decodeHtml
            , decodeJSON,toJSONString, cleanString, syncScroll, reloadPage, initElements
            , errorPopup, genInOutElts, getInOutElts,generateExerciseElts
-           , message, IOGoal(..), updateWithValue, submissionSource
+           , message, submitMessage, showSubmitError, showSubmitSuccess, IOGoal(..), updateWithValue, submissionSource
            , assignmentKey, initialize, mutate, initializeCallback, initCallbackObj
            , toCleanVal, popUpWith, spinnerSVG, doneButton, questionButton
            , exclaimButton, expandButton, createSubmitButton, createButtonWrapper
@@ -445,6 +445,11 @@ showSubmitError = showSubmitStatus True
 
 showSubmitSuccess :: Document -> Element -> String -> IO ()
 showSubmitSuccess = showSubmitStatus False
+
+-- Replacement for 'message' for use inside a Submit button's click handler:
+-- shows the text inline next to the clicked button instead of in a blocking dialog.
+submitMessage w msg = do Just t <- eventCurrentTarget
+                         liftIO $ showSubmitError w (castToElement t) msg
 
 svgButtonWith :: String -> Document -> String -> IO Element
 svgButtonWith svg w thelabel =

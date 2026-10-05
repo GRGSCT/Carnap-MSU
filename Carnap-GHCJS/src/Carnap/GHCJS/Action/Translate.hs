@@ -137,11 +137,11 @@ submitTrans w opts i ref fs parser checker tests l =
                         Right f' | tests f' == Nothing && any (\f -> checker f f') fs -> 
                             trySubmit w Translation opts l (TranslationDataOpts (serialize fs) (pack v) (M.toList opts)) True
                         Left _ | "checksyntax" `inOpts` opts -> 
-                            message "Can't read this. Please double check syntax before submitting."
+                            submitMessage w "Can't read this. Please double check syntax before submitting."
                         _ | "exam" `inOpts` opts -> 
                             trySubmit w Translation opts l (TranslationDataOpts (serialize fs) (pack v) (M.toList opts)) False
-                        _ -> message "Something is wrong... try again?"
-                else message "Not yet finished (remember to press return to check your work before submitting!)"
+                        _ -> submitMessage w "Something is wrong... try again?"
+                else submitMessage w "Not yet finished (remember to press return to check your work before submitting!)"
     where serialize :: Show a => [a] -> Text
           serialize = pack . tail . init . show --we drop the list brackets
 
