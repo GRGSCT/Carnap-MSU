@@ -80,13 +80,13 @@ activateTruthTables w (Just (i,o,opts)) = do
                           return ()
                 _ -> print "truth table was missing an option"
           checkTable bt wrap ref check = liftIO $ do correct <- check
-                                                  if correct 
-                                                      then do showSubmitSuccess w bt "Success!"
-                                                              writeIORef ref True
-                                                              setSuccess w wrap 
-                                                      else do showSubmitError w bt "Something's not quite right"
-                                                              writeIORef ref False
-                                                              setFailure w wrap
+                                                     if correct 
+                                                         then do showSubmitSuccess w bt "Success!"
+                                                                 writeIORef ref True
+                                                                 setSuccess w wrap 
+                                                         else do showSubmitError w bt "Something's not quite right"
+                                                                 writeIORef ref False
+                                                                 setFailure w wrap
 
 submitTruthTable:: (SerializableAsTruthTable ref, IsEvent e) => 
     Document -> Map String String -> Element -> IORef Bool ->  IO Bool -> ref -> String -> String -> EventM HTMLInputElement e ()
