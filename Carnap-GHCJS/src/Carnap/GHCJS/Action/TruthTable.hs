@@ -84,7 +84,7 @@ activateTruthTables w (Just (i,o,opts)) = do
                                                          then do showSubmitSuccess w bt "Success!"
                                                                  writeIORef ref True
                                                                  setSuccess w wrap 
-                                                         else do showSubmitError w bt "Something's not quite right"
+                                                         else do showSubmitError w bt "Something's not quite right."
                                                                  writeIORef ref False
                                                                  setFailure w wrap
 
@@ -102,7 +102,7 @@ submitTruthTable w opts wrap ref check values s l =
                      --truth table as correct.
                      else if "exam" `inOpts` opts
                              then trySubmit w TruthTable opts l (TruthTableDataOpts (pack s) tabulated (M.toList opts)) correct
-                             else do submitMessage w "not yet finished (do you still need to check your answer?)"
+                             else do submitMessage w "not yet finished (Do you still need to check your answer?)"
                                      liftIO $ setFailure w wrap
 
 -------------------------
@@ -237,7 +237,7 @@ tryCounterexample w opts ref bt i indicies counterexampleData =
                                            do showSubmitSuccess w bt "Success!"
                                               writeIORef ref True
                                               setSuccess w wrap 
-                                      else do showSubmitError w bt "Something's not quite right"
+                                      else do showSubmitError w bt "Something's not quite right."
                                               writeIORef ref False
                                               setFailure w wrap 
  
