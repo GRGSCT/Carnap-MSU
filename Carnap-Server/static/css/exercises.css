@@ -579,10 +579,10 @@ body[data-carnap-type="proofchecker"] .buttonWrapper {
 
 .buttonWrapper .submitStatus.submitError {
     color:#a00000;
-    font-weight:bold;
+    font-weight:600;
 }
 
 .buttonWrapper .submitStatus.submitSuccess {
     color:#1b5e20;
-    font-weight:bold;
+    font-weight:600;
 }
