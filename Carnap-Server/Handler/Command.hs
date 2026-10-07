@@ -55,9 +55,9 @@ postCommandR = do
                                     testTime min = floor ((fromIntegral min) * accommodationFactor) + accommodationMinutes
                                 case (mtoken, assignmentMetadataAvailability asgn) of
                                      (Just tok, Just (ViaPasswordExpiring _ min)) | age tok > 60 * testTime min
-                                            -> returnJson ("Assignment time limit exceeded" :: String)
+                                            -> returnJson ("Time limit exceeded" :: String)
                                      (Just tok, Just (HiddenViaPasswordExpiring _ min)) | age tok > 60 * testTime min
-                                            -> returnJson ("Assignment time limit exceeded" :: String)
+                                            -> returnJson ("Time limit exceeded" :: String)
                                      _ | assignmentMetadataVisibleTill asgn > Just time -> runDB (insertUnique sub) >>= afterInsert
                                        | null (assignmentMetadataVisibleTill asgn) -> runDB (insertUnique sub) >>= afterInsert
                                        | (extensionUntil . entityVal <$> mex) > Just time -> runDB (insertUnique sub) >>= afterInsert
@@ -83,4 +83,4 @@ packageNewRule (SavedRule dr n _ _) = (unpack n, dr)
 
 afterInsert :: Monad m => Maybe a -> m Value
 afterInsert (Just _) = returnJson ("submitted!" :: String)
-afterInsert Nothing = returnJson ("It appears you've already successfully submitted this problem." :: String)
+afterInsert Nothing = returnJson ("You've already successfully submitted this problem." :: String)
