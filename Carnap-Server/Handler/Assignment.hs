@@ -109,9 +109,9 @@ returnAssignment coursetitle filename (Entity key val) path = do
                              (enterPasswordWidget,enctypeEnterPassword) <- generateFormPost (identifyForm "enterPassword" $ enterPasswordForm)
                              $(widgetFile "passwordEntry")
                         (Just (ViaPasswordExpiring _ min), Just tok) | age tok > 60 * testTime min && not instructorAccess ->
-                             defaultLayout $ minimalLayout ("Assignment time limit exceeded" :: String)
+                             defaultLayout $ minimalLayout ("Time limit exceeded" :: String)
                         (Just (HiddenViaPasswordExpiring _ min), Just tok) | age tok > 60 * testTime min && not instructorAccess ->
-                             defaultLayout $ minimalLayout ("Assignment time limit exceeded" :: String)
+                             defaultLayout $ minimalLayout ("Time limit exceeded" :: String)
                         (mavail,_) -> do
                              mbcss <- retrievePandocVal (lookupMeta "base-css" meta)
                              mcss <- retrievePandocVal (lookupMeta "css" meta)
