@@ -43,10 +43,10 @@ syntaxCheckAction = initElements getCheckers activateChecker
 --formulas in the todo list. The labeling makes it possible to identify
 --which formula is in the queue, even when there are several
 --syntactically indistinguishable formulas
-tryMatch :: Element -> IORef (PureForm, [(PureForm, Int)], Tree (PureForm, Int), Int) 
+tryMatch :: Element -> Element -> IORef (PureForm, [(PureForm, Int)], Tree (PureForm, Int), Int) 
             -> Document -> (PureForm -> String) -> M.Map String String 
             -> EventM HTMLInputElement KeyboardEvent ()
-tryMatch o ref w sf opts = onEnter $ 
+tryMatch bw o ref w sf opts = onEnter $ 
         do Just t <- target :: EventM HTMLInputElement KeyboardEvent (Maybe HTMLInputElement)
            Just ival  <- getValue t
            (f, forms, ft, stage) <- liftIO $ readIORef ref
@@ -56,16 +56,19 @@ tryMatch o ref w sf opts = onEnter $
                                  Just wrap2 <- getParentElement wrap1
                                  redraw Nothing ft
                                  setSuccess w wrap2
-               x:xs -> case matchMC ival (fst x) of
-                   Right b -> if b 
-                       then case children (fst x) of 
-                               [] -> shorten x xs stage
-                               children -> updateGoal x (zip children [(stage + 1)..]) xs (stage + length children + 1)
-                       else do message $ "Sorry, that's not the main connective. Try again!"
-                               resetGoal
-                   Left e -> case children (fst x) of
-                          [] -> shorten x xs stage
-                          _ -> message "what you've entered doesn't appear to be a connective"
+               --feedback is shown inline in the button wrapper rather than in a blocking
+               --alert() dialog (see showSubmitStatus in Lib.hs); any earlier message is cleared first
+               x:xs -> do liftIO $ clearWrapperStatus bw
+                          case matchMC ival (fst x) of
+                            Right b -> if b 
+                                then case children (fst x) of 
+                                        [] -> shorten x xs stage
+                                        children -> updateGoal x (zip children [(stage + 1)..]) xs (stage + length children + 1)
+                                else do liftIO $ showWrapperStatus True w bw "Sorry, that's not the main connective. Try again!"
+                                        resetGoal
+                            Left e -> case children (fst x) of
+                                   [] -> shorten x xs stage
+                                   _ -> liftIO $ showWrapperStatus True w bw "What you've entered doesn't appear to be a connective."
         where optlist = case M.lookup "options" opts of Just s -> words s; Nothing -> []
               --updates the goal, by adding labeled formulas to the todo ist, 
               --developing the tree with those labeled formulas at the given label, and 
@@ -151,7 +154,7 @@ activateChecker w (Just (i,o,opts)) =
                          setAttribute tree "class" "tree"
                          mpar@(Just par) <- getParentNode o               
                          insertBefore par (Just bw) (Just o)                    
-                         match <- newListener $ tryMatch tree ref w sf opts
+                         match <- newListener $ tryMatch bw tree ref w sf opts
                          (Just w') <- getDefaultView w
                          doOnce i keyUp False $ liftIO $ btStatus Edited
                          setAttribute i "enterKeyHint" "go"
