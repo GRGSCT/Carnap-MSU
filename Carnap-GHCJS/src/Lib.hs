@@ -5,7 +5,7 @@ module Lib ( genericSendJSON, sendJSON, onEnter, onKey, doOnce, dispatchCustom, 
            , listToUl, formToTree, leaves, adjustFirstMatching, decodeHtml
            , decodeJSON,toJSONString, cleanString, syncScroll, reloadPage, initElements
            , errorPopup, genInOutElts, getInOutElts,generateExerciseElts
-           , message, submitMessage, showSubmitError, showSubmitSuccess, IOGoal(..), updateWithValue, submissionSource
+           , message, submitMessage, showSubmitError, showSubmitSuccess, showWrapperStatus, clearWrapperStatus, IOGoal(..), updateWithValue, submissionSource
            , assignmentKey, initialize, mutate, initializeCallback, initCallbackObj
            , toCleanVal, popUpWith, spinnerSVG, doneButton, questionButton
            , exclaimButton, expandButton, createSubmitButton, createButtonWrapper
@@ -406,6 +406,11 @@ loginCheck onFailure callback serverResponse
 
 errorPopup msg = alert ("Something has gone wrong. Here's the error: " ++ msg)
 
+-- Must match the message returned by afterInsert in Carnap-Server/Handler/Command.hs.
+-- The earlier submission was saved, so this is shown as a success rather than an error.
+alreadySubmitted :: String
+alreadySubmitted = "You've already successfully submitted this problem."
+
 -- Inline (non-blocking) submission feedback. Blocking dialogs such as alert()
 -- change browser focus, which proctoring extensions (e.g. Honorlock on macOS)
 -- can react to by switching back to the assessment tab. Instead, we put the
@@ -416,22 +421,30 @@ showSubmitStatus :: Bool -> Document -> Element -> String -> IO ()
 showSubmitStatus isError w bt msg = 
         do mpar <- getParentNode bt
            case mpar of
+               --only errors need a fallback; success is also shown by the button's styling
+               Nothing -> if isError then alert msg else return ()
+               Just par -> showWrapperStatus isError w (castToElement par) msg
+
+-- Like showSubmitStatus, but given the button wrapper itself rather than a
+-- button inside it. Used for feedback that isn't triggered by a button click,
+-- e.g. pressing Enter in a syntax check problem.
+showWrapperStatus :: Bool -> Document -> Element -> String -> IO ()
+showWrapperStatus isError w par msg = 
+        do existing <- getListOfElementsByClass par "submitStatus"
+           msp <- case catMaybes existing of
+                      (e:_) -> return (Just e)
+                      [] -> do mspan <- createElement w (Just "span")
+                               case mspan of
+                                   Nothing -> return Nothing
+                                   Just sp -> do setAttribute sp "role" "status"
+                                                 setAttribute sp "aria-live" "polite"
+                                                 setAttribute sp "aria-atomic" "true"
+                                                 appendChild par (Just sp)
+                                                 return (Just sp)
+           case msp of
                Nothing -> fallback
-               Just par -> do existing <- getListOfElementsByClass (castToElement par) "submitStatus"
-                              msp <- case catMaybes existing of
-                                         (e:_) -> return (Just e)
-                                         [] -> do mspan <- createElement w (Just "span")
-                                                  case mspan of
-                                                      Nothing -> return Nothing
-                                                      Just sp -> do setAttribute sp "role" "status"
-                                                                    setAttribute sp "aria-live" "polite"
-                                                                    setAttribute sp "aria-atomic" "true"
-                                                                    appendChild par (Just sp)
-                                                                    return (Just sp)
-                              case msp of
-                                  Nothing -> fallback
-                                  Just sp -> do setAttribute sp "class" ("submitStatus " ++ (if isError then "submitError" else "submitSuccess"))
-                                                setInnerHTML sp (Just (escapeHtml msg))
+               Just sp -> do setAttribute sp "class" ("submitStatus " ++ (if isError then "submitError" else "submitSuccess"))
+                             setInnerHTML sp (Just (escapeHtml msg))
     where escapeHtml = concatMap esc
           esc '<' = "&lt;"
           esc '>' = "&gt;"
@@ -439,6 +452,11 @@ showSubmitStatus isError w bt msg =
           esc c = [c]
           --only errors need a fallback; success is also shown by the button's styling
           fallback = if isError then alert msg else return ()
+
+-- Removes any inline message from a button wrapper.
+clearWrapperStatus :: Element -> IO ()
+clearWrapperStatus par = do existing <- getListOfElementsByClass par "submitStatus"
+                            mapM_ (\sp -> setInnerHTML sp (Just "")) (catMaybes existing)
 
 showSubmitError :: Document -> Element -> String -> IO ()
 showSubmitError = showSubmitStatus True
@@ -494,7 +512,8 @@ trySubmit w problemType opts ident problemData correct =
                                                     key
                                            ) 
                                            --on success, the button's "submitted" status styling is the confirmation
-                                           (loginCheck inlineError (setStatus w bt Submitted >> showSubmitSuccess w bt "Submitted"))
+                                           (loginCheck (\r -> if r == alreadySubmitted then showSubmitSuccess w bt r else inlineError r)
+                                                       (setStatus w bt Submitted >> showSubmitSuccess w bt "Submitted"))
                                            (\msg -> inlineError ("Something has gone wrong. Here's the error: " ++ msg))
 
 ------------------
