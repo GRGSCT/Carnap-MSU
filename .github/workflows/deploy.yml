@@ -77,3 +77,20 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             systemctl restart carnap.service
+
+      # 5. Delete old builds so the server's disk doesn't fill up.
+      #    The live client and server builds are protected by the
+      #    GC roots in /nix/var/nix/gcroots/auto (set up once on the server).
+      - name: Clean Up Old Builds
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            # Refuse to clean up unless both live builds are protected
+            [ "$(readlink /nix/var/nix/gcroots/auto/carnap-server)" = /var/www/carnap/server ]
+            [ "$(readlink /nix/var/nix/gcroots/auto/carnap-client)" = /var/www/carnap/client ]
+            nix-collect-garbage -d
+            df -h /
